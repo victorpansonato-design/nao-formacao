@@ -1,0 +1,47 @@
+/* Tokens propostos; importar na aplicação e mapear para as primitivas de UI. */
+:root {
+  color-scheme: light;
+  --brand: #0051a0;
+  --nav: #133a9e;
+  --canvas: #f4f7fb;
+  --surface: #ffffff;
+  --surface-raised: #ffffff;
+  --text: #14263f;
+  --text-muted: #52647c;
+  --border: #dce5f0;
+  --action: #0051a0;
+  --action-text: #ffffff;
+  --success: #146c43;
+  --warning: #815200;
+  --danger: #b42332;
+  --focus: #0051a0;
+  --radius-control: 8px;
+  --radius-panel: 12px;
+  --radius-dialog: 16px;
+  --shadow-raised: 0 8px 28px rgb(20 38 63 / 9%);
+  --duration-fast: 120ms;
+  --duration-base: 200ms;
+  --duration-panel: 280ms;
+  --duration-theme: 450ms;
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --font-ui: 'Inter Variable', Inter, system-ui, sans-serif;
+}
+[data-theme='dark'] {
+  color-scheme: dark;
+  --nav: #102f70;
+  --canvas: #0c1626;
+  --surface: #132137;
+  --surface-raised: #192b45;
+  --text: #edf3fc;
+  --text-muted: #a9b9d0;
+  --border: #2c405b;
+  --action: #80b8ff;
+  --action-text: #0c1626;
+  --success: #71d6a1;
+  --warning: #f2cb71;
+  --danger: #ff9ca6;
+  --focus: #80b8ff;
+}
+@media (prefers-reduced-motion: reduce) {
+  :root { --duration-fast: 0ms; --duration-base: 0ms; --duration-panel: 0ms; --duration-theme: 0ms; }
+}

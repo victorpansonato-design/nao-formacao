@@ -1,0 +1,110 @@
+[
+  {
+    "id": "SC-01",
+    "caseId": "DEMO-CASE-0001",
+    "name": "Interesse alternativo explícito fora da área",
+    "destinationId": "DEMO-OF-BIO-D",
+    "setup": "Executar decisão oficial simulada de não formação da origem antes de liberar contato.",
+    "sourceKind": "synthetic",
+    "expected": "Confirmar interesse atual; Biomedicina diurno elegível; usar evidência CRM-DEMO-01; criar proposta apenas após conferir rotina e orçamento."
+  },
+  {
+    "id": "SC-02",
+    "caseId": "DEMO-CASE-0002",
+    "name": "Preservar curso, mudar para noite",
+    "destinationId": "DEMO-OF-ADM-N",
+    "setup": "Executar decisão oficial simulada de não formação da origem antes de liberar contato.",
+    "sourceKind": "synthetic",
+    "expected": "Destino Administração noturno pode preservar formação; confirmar modalidade e valor."
+  },
+  {
+    "id": "SC-03",
+    "caseId": "DEMO-CASE-0003",
+    "name": "Pedido direto de devolução",
+    "destinationId": null,
+    "setup": "Executar decisão oficial simulada de não formação da origem antes de liberar contato.",
+    "sourceKind": "synthetic",
+    "expected": "Pedido de restituição abre fluxo diretamente, sem oferta adicional obrigatória."
+  },
+  {
+    "id": "SC-04",
+    "caseId": "DEMO-CASE-0071",
+    "name": "Destino ainda não confirmado",
+    "destinationId": "DEMO-OF-BIO-SEMI",
+    "setup": "Executar decisão oficial simulada de não formação da origem antes de liberar contato.",
+    "sourceKind": "synthetic",
+    "expected": "Biomedicina semi pendente não libera proposta, mesmo com interesse declarado."
+  },
+  {
+    "id": "SC-05",
+    "caseId": "DEMO-CASE-0072",
+    "name": "Orçamento exige alçada",
+    "destinationId": "DEMO-OF-ADS-N",
+    "setup": "Executar decisão oficial simulada de não formação da origem antes de liberar contato.",
+    "sourceKind": "synthetic",
+    "expected": "Exceção acima da alçada bloqueia aceite até aprovação e mostra custo total."
+  },
+  {
+    "id": "SC-06",
+    "caseId": "DEMO-CASE-0131",
+    "name": "Compatibilidade de agenda",
+    "destinationId": "DEMO-OF-PROD-N",
+    "setup": "Executar decisão oficial simulada de não formação da origem antes de liberar contato.",
+    "sourceKind": "synthetic",
+    "expected": "Atualizar agenda declarada e excluir opções incompatíveis; não presumir disponibilidade."
+  },
+  {
+    "id": "SC-07",
+    "caseId": "DEMO-CASE-0132",
+    "name": "Sem alternativa adequada",
+    "destinationId": null,
+    "setup": "Executar decisão oficial simulada de não formação da origem antes de liberar contato.",
+    "sourceKind": "synthetic",
+    "expected": "Registrar ausência de opção adequada e oferecer saída; não inventar curso."
+  },
+  {
+    "id": "SC-08",
+    "caseId": "DEMO-CASE-0181",
+    "name": "Proposta vence antes do aceite",
+    "destinationId": "DEMO-OF-DES-N",
+    "setup": "Criar proposta elegível em outro destino, avançar relógio além da validade; Design noturno permanece bloqueado.",
+    "sourceKind": "synthetic",
+    "expected": "Bloquear aceite expirado e revalidar nova proposta."
+  },
+  {
+    "id": "SC-09",
+    "caseId": "DEMO-CASE-0236",
+    "name": "Última vaga disputada",
+    "destinationId": "DEMO-OF-BIO-D",
+    "setup": "Reduzir capacidade do destino a uma vaga livre; criar duas tentativas com versões concorrentes.",
+    "sourceKind": "synthetic",
+    "expected": "Uma reserva/aceite válido; segundo comando tem conflito. Simulação não garante concorrência entre computadores."
+  },
+  {
+    "id": "SC-10",
+    "caseId": "DEMO-CASE-0301",
+    "name": "Sem pagamento a restituir",
+    "destinationId": null,
+    "setup": "Executar decisão oficial simulada de não formação da origem antes de liberar contato.",
+    "sourceKind": "synthetic",
+    "expected": "Regularização acadêmica, sem devolução de valor zero."
+  },
+  {
+    "id": "SC-11",
+    "caseId": "DEMO-CASE-0381",
+    "name": "Retorno agendado e opt-out",
+    "destinationId": "DEMO-OF-RH-SEMI",
+    "setup": "Executar decisão oficial simulada de não formação da origem antes de liberar contato.",
+    "sourceKind": "synthetic",
+    "expected": "Cancelar contatos promocionais; retorno resolutivo somente conforme combinado e política."
+  },
+  {
+    "id": "SC-12",
+    "caseId": "DEMO-CASE-0441",
+    "name": "Ajuste devolvido por divergência",
+    "destinationId": "DEMO-OF-CONT-N",
+    "setup": "Executar decisão oficial simulada de não formação da origem antes de liberar contato.",
+    "sourceKind": "synthetic",
+    "expected": "Suporte devolve tarefa por valor divergente; não contar como efetivado até correção e conferência."
+  }
+]

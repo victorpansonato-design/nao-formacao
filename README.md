@@ -4,6 +4,10 @@
 
 Planejamento do Hackathon Corporativo Grupo Anchieta. Nome de trabalho: **Continua**. Repositório `victorpansonato-design/nao-formacao`. Base de pesquisa: 10/11/2026. Entrega desta etapa: especificação para construir um front-end funcional no VS Code; não há aplicação pronta, modelo treinado ou integração real neste commit.
 
+![Estudo de composição do atendimento, com dados fictícios](design/assets/atendimento-claro.png)
+
+[Radar claro](design/assets/radar-claro.png) · [Radar escuro](design/assets/radar-escuro.png) · [Atendimento escuro](design/assets/atendimento-escuro.png). Estudos autorais de direção visual; não são telas de aplicação implementada.
+
 ## Comece aqui
 
 1. Leia [a síntese executiva](docs/01-estrategia.md).
