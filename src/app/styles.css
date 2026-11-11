@@ -1,0 +1,227 @@
+@import 'tailwindcss';
+@import '../../design/tokens.css';
+@import '@fontsource-variable/inter';
+
+@custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
+
+/* Tokens complementares aos de design/tokens.css (mesma fonte de verdade para cor). */
+:root {
+  --surface-sunken: #eef3f9;
+  --surface-hover: #f1f5fa;
+  --border-strong: #c3d0e0;
+  --text-subtle: #6b7c93;
+  --brand-soft: #e6effa;
+  --brand-soft-text: #0a4788;
+  --success-soft: #e3f4ea;
+  --warning-soft: #fbf0d4;
+  --danger-soft: #fce8ea;
+  --neutral-soft: #e9eef5;
+  --nav-text: #ffffff;
+  --nav-text-muted: #c3d2f3;
+  --nav-hover: rgb(255 255 255 / 9%);
+  --nav-active: rgb(255 255 255 / 16%);
+  --nav-border: rgb(255 255 255 / 14%);
+  --bubble-in: #eef3f9;
+  --bubble-out: #dfeafa;
+  --overlay: rgb(12 22 38 / 45%);
+  --chart-observed: #0051a0;
+  --chart-scenario: #5b8fd0;
+  --chart-band: rgb(0 81 160 / 12%);
+  --chart-reference: #815200;
+  --chart-grid: #e3eaf3;
+  --shadow-pop: 0 1px 2px rgb(20 38 63 / 6%), 0 8px 24px rgb(20 38 63 / 10%);
+}
+[data-theme='dark'] {
+  --surface-sunken: #0f1b2e;
+  --surface-hover: #1a2c47;
+  --border-strong: #3d5475;
+  --text-subtle: #8fa2bd;
+  --brand-soft: #17335a;
+  --brand-soft-text: #b5d5ff;
+  --success-soft: #133a2b;
+  --warning-soft: #3f3212;
+  --danger-soft: #47202a;
+  --neutral-soft: #1d2f4a;
+  --nav-text: #edf3fc;
+  --nav-text-muted: #a9bde6;
+  --bubble-in: #192b45;
+  --bubble-out: #1b3d6e;
+  --overlay: rgb(3 8 16 / 62%);
+  --chart-observed: #80b8ff;
+  --chart-scenario: #5f93d6;
+  --chart-band: rgb(128 184 255 / 14%);
+  --chart-reference: #f2cb71;
+  --chart-grid: #24364f;
+  --shadow-raised: 0 8px 28px rgb(0 0 0 / 35%);
+  --shadow-pop: 0 1px 2px rgb(0 0 0 / 30%), 0 10px 30px rgb(0 0 0 / 40%);
+}
+
+@theme inline {
+  --font-sans: var(--font-ui);
+  --color-brand: var(--brand);
+  --color-nav: var(--nav);
+  --color-nav-fg: var(--nav-text);
+  --color-nav-muted: var(--nav-text-muted);
+  --color-nav-hover: var(--nav-hover);
+  --color-nav-active: var(--nav-active);
+  --color-nav-line: var(--nav-border);
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-raised: var(--surface-raised);
+  --color-sunken: var(--surface-sunken);
+  --color-hover: var(--surface-hover);
+  --color-fg: var(--text);
+  --color-muted: var(--text-muted);
+  --color-subtle: var(--text-subtle);
+  --color-line: var(--border);
+  --color-line-strong: var(--border-strong);
+  --color-action: var(--action);
+  --color-action-fg: var(--action-text);
+  --color-brand-soft: var(--brand-soft);
+  --color-brand-soft-fg: var(--brand-soft-text);
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-neutral-soft: var(--neutral-soft);
+  --color-bubble-in: var(--bubble-in);
+  --color-bubble-out: var(--bubble-out);
+  --color-overlay: var(--overlay);
+  --color-focus: var(--focus);
+  --radius-ctl: var(--radius-control);
+  --radius-pnl: var(--radius-panel);
+  --radius-dlg: var(--radius-dialog);
+  --shadow-raise: var(--shadow-raised);
+  --shadow-popover: var(--shadow-pop);
+  --ease-out-soft: var(--ease-out);
+}
+
+@layer base {
+  html {
+    font-family: var(--font-ui);
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    font-feature-settings: 'cv11', 'ss01';
+    scrollbar-gutter: stable;
+  }
+  body {
+    margin: 0;
+    background: var(--canvas);
+    color: var(--text);
+    min-height: 100dvh;
+  }
+  *,
+  ::before,
+  ::after {
+    border-color: var(--border);
+  }
+  :focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+  }
+  button,
+  [role='button'],
+  a,
+  summary,
+  label[for] {
+    cursor: pointer;
+  }
+  button:disabled {
+    cursor: not-allowed;
+  }
+  h1,
+  h2,
+  h3,
+  h4 {
+    text-wrap: balance;
+  }
+  ::selection {
+    background: color-mix(in srgb, var(--action) 24%, transparent);
+  }
+  /* Barras de rolagem discretas dentro dos painéis */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-strong) transparent;
+  }
+}
+
+@utility tabular {
+  font-variant-numeric: tabular-nums;
+}
+@utility page-title {
+  font-size: 22px;
+  line-height: 30px;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+}
+@utility section-title {
+  font-size: 15px;
+  line-height: 22px;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+}
+@utility eyebrow {
+  font-size: 12px;
+  line-height: 18px;
+  font-weight: 500;
+  color: var(--text-subtle);
+}
+@utility metric {
+  font-size: 28px;
+  line-height: 34px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Troca de tema: preenchimento circular controlado por JS (ver shared/motion/theme-transition.ts) */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+::view-transition-old(root) {
+  z-index: 1;
+}
+::view-transition-new(root) {
+  z-index: 2;
+}
+
+/* Movimento reduzido: preferência do sistema ou opção da interface */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+[data-motion='reduced'] *,
+[data-motion='reduced'] ::before,
+[data-motion='reduced'] ::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+
+@media print {
+  [data-print='hide'] {
+    display: none !important;
+  }
+}
+
+/* Presença de overlays (Radix controla data-state; duração curta, até 4 px). */
+@keyframes fade-in { from { opacity: 0; } }
+@keyframes fade-out { to { opacity: 0; } }
+@keyframes pop-in { from { opacity: 0; transform: translateY(-4px); } }
+@keyframes dialog-in { from { opacity: 0; transform: translate(-50%, calc(-50% + 6px)) scale(0.985); } }
+@keyframes sheet-right-in { from { transform: translateX(24px); opacity: 0; } }
+@keyframes sheet-right-out { to { transform: translateX(24px); opacity: 0; } }
+@keyframes sheet-left-in { from { transform: translateX(-24px); opacity: 0; } }
+@keyframes sheet-left-out { to { transform: translateX(-24px); opacity: 0; } }
