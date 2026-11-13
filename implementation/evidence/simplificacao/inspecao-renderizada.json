@@ -1,0 +1,90 @@
+[
+  {
+    "theme": "light",
+    "role": "gestao",
+    "route": "/visao-geral",
+    "checked": 48,
+    "failures": [],
+    "mainWords": 73,
+    "navLinks": 3,
+    "mainButtons": 1,
+    "errors": []
+  },
+  {
+    "theme": "light",
+    "role": "consultor",
+    "route": "/atendimentos",
+    "checked": 52,
+    "failures": [],
+    "mainWords": 71,
+    "navLinks": 3,
+    "mainButtons": 7,
+    "errors": []
+  },
+  {
+    "theme": "light",
+    "role": "suporte",
+    "route": "/ajustes",
+    "checked": 94,
+    "failures": [],
+    "mainWords": 189,
+    "navLinks": 3,
+    "mainButtons": 10,
+    "errors": []
+  },
+  {
+    "theme": "light",
+    "role": "financeiro",
+    "route": "/devolucoes",
+    "checked": 60,
+    "failures": [],
+    "mainWords": 97,
+    "navLinks": 3,
+    "mainButtons": 4,
+    "errors": []
+  },
+  {
+    "theme": "dark",
+    "role": "gestao",
+    "route": "/visao-geral",
+    "checked": 48,
+    "failures": [],
+    "mainWords": 73,
+    "navLinks": 3,
+    "mainButtons": 1,
+    "errors": []
+  },
+  {
+    "theme": "dark",
+    "role": "consultor",
+    "route": "/atendimentos",
+    "checked": 52,
+    "failures": [],
+    "mainWords": 71,
+    "navLinks": 3,
+    "mainButtons": 7,
+    "errors": []
+  },
+  {
+    "theme": "dark",
+    "role": "suporte",
+    "route": "/ajustes",
+    "checked": 94,
+    "failures": [],
+    "mainWords": 189,
+    "navLinks": 3,
+    "mainButtons": 10,
+    "errors": []
+  },
+  {
+    "theme": "dark",
+    "role": "financeiro",
+    "route": "/devolucoes",
+    "checked": 60,
+    "failures": [],
+    "mainWords": 97,
+    "navLinks": 3,
+    "mainButtons": 4,
+    "errors": []
+  }
+]

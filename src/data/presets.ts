@@ -9,16 +9,17 @@ import { buildSeedState } from './seed'
  * que a interface usa, a partir da base sintética. Nenhum painel recebe contador manual.
  */
 
-export type PresetId = 'anticipation' | 'operation' | 'aftercare' | 'closed'
+export type PresetId = 'anticipation' | 'operation' | 'progress' | 'aftercare' | 'closed'
 
 export const PRESETS: { id: PresetId; label: string; at: string; description: string }[] = [
-  { id: 'anticipation', label: 'Antecipação', at: '2027-01-04T09:00:00-03:00', description: '04/01/2027. 500 matrículas em monitoramento, nenhuma decisão oficial. Afetados oficiais = 0.' },
-  { id: 'operation', label: 'Operação', at: '2027-01-27T09:00:00-03:00', description: '27/01/2027. Diretoria registrou as decisões na véspera; fila geral aberta, com atendimentos, propostas, ajustes e devoluções em andamento.' },
+  { id: 'anticipation', label: 'Antecipação', at: '2027-01-04T09:00:00-03:00', description: '04/01/2027. 500 matrículas em monitoramento; só as duas turmas sem alunos acompanhados (Biomedicina semipresencial e Design Gráfico noturno) começam não ofertadas. Alunos afetados = 0.' },
+  { id: 'operation', label: 'Operação', at: '2027-01-27T09:00:00-03:00', description: '27/01/2027. Diretoria/Gestão cadastrou oito turmas como não ofertadas na véspera; fila geral aberta, com atendimentos, propostas, ajustes e devoluções em andamento.' },
+  { id: 'progress', label: 'Em andamento', at: '2027-02-09T09:00:00-03:00', description: '09/02/2027, primeira semana de aulas. Mesma operação com a equipe em pleno atendimento: cerca de dois terços dos afetados já contatados, com trocas confirmadas, devoluções e fila restante. É o cenário em que o sistema abre, para o painel da Diretoria/Gestão ter o que mostrar.' },
   { id: 'aftercare', label: 'Pós-início', at: '2027-02-09T09:00:00-03:00', description: '09/02/2027. Aulas iniciadas; janela D+7 vencida aguardando observação; pendências residuais visíveis.' },
   { id: 'closed', label: 'Campanha encerrada', at: '2027-03-05T09:00:00-03:00', description: '05/03/2027. Campanha encerrada com snapshot; exceções assumidas; D+30 aguardando observação.' },
 ]
 
-const U = { dir: 'DEMO-USER-DIR', mgr: 'DEMO-USER-GEST', a: 'DEMO-USER-A', b: 'DEMO-USER-B', c: 'DEMO-USER-C', sup: 'DEMO-USER-SUP', fin: 'DEMO-USER-FIN' } as const
+const U = { mgr: 'DEMO-USER-GEST', a: 'DEMO-USER-A', b: 'DEMO-USER-B', c: 'DEMO-USER-C', sup: 'DEMO-USER-SUP' } as const
 const CONSULTANTS = [U.a, U.b, U.c] as const
 
 const caseId = (n: number): Id => `DEMO-CASE-${String(n).padStart(4, '0')}`
@@ -104,31 +105,19 @@ class Script {
     return { proposalId, taskId }
   }
 
-  /** Saída: pedido direto, sem negociação. stage controla até onde o fluxo avança. */
-  refund(n: number, owner: Id, at: string, stage: 'requested' | 'verification' | 'awaiting_payment' | 'paid', contacted = false) {
+  /**
+   * Saída: pedido direto, sem negociação. A devolução fica registrada e encaminhada ao financeiro externo;
+   * `settled` conclui a regularização no Suporte e encerra o caso.
+   */
+  refund(n: number, owner: Id, at: string, settled: boolean, contacted = false) {
     if (!contacted) this.contact(n, owner, at, 'Prefiro a devolução do que paguei.')
-    const { refundId, taskId } = this.run('requestRefund', { caseId: caseId(n), note: 'Aluno pediu a devolução diretamente.' }, owner, at)
-    if (!refundId) {
-      if (stage !== 'requested') this.executeTask(taskId, at)
-      return
-    }
-    if (stage === 'requested') return
-    this.run('advanceRefund', { refundId, to: 'verification' }, U.fin, at)
-    if (stage === 'verification') return
-    this.executeTask(taskId, at)
-    this.run('advanceRefund', { refundId, to: 'awaiting_payment' }, U.fin, at)
-    if (stage === 'awaiting_payment') return
-    this.run('payRefund', { refundId }, U.fin, at)
+    const { taskId } = this.run('requestRefund', { caseId: caseId(n), note: 'Aluno pediu a devolução diretamente.' }, owner, at)
+    if (settled) this.executeTask(taskId, at)
   }
 
   finishRefund(n: number, at: string) {
-    const r = this.s.refunds.find((x) => x.caseId === caseId(n) && x.status !== 'paid' && !x.status.startsWith('closed'))
     const task = this.s.academicTasks.find((t) => t.caseId === caseId(n) && t.kind === 'regularization' && t.status !== 'done' && t.status !== 'cancelled')
     if (task) this.executeTask(task.id, at)
-    if (!r) return
-    if (r.status === 'requested') this.run('advanceRefund', { refundId: r.id, to: 'verification' }, U.fin, at)
-    if (r.status === 'verification') this.run('advanceRefund', { refundId: r.id, to: 'awaiting_payment' }, U.fin, at)
-    this.run('payRefund', { refundId: r.id }, U.fin, at)
   }
 
   unreachable(n: number, owner: Id, at: string, contacted = false) {
@@ -150,10 +139,10 @@ function stageOperation(x: Script): void {
       x.run('recordSnapshot', { offeringId: o.id, asOf, countValid: o.occupiedSeats, batchId: 'DEMO-BATCH-02' }, U.mgr, `${asOf}T08:00:00-03:00`)
     }
   }
-  // Decisão oficial simulada, na data de referência.
+  // Cadastro simulado da Diretoria/Gestão: as oito turmas de origem ficam como Não ofertadas.
   const decided = '2027-01-26T10:00:00-03:00'
   for (const o of s.offerings.filter((o) => o.role === 'origin')) {
-    x.run('recordDecision', { offeringId: o.id, outcome: 'not_formed', reason: 'Demanda abaixo da referência econômica no cenário base, sem verba de investimento estratégico (justificativa fictícia).', reference: 'ATA-DEMO-02' }, U.dir, decided)
+    x.run('recordDecision', { offeringId: o.id, outcome: 'not_formed' }, U.mgr, decided)
   }
 
   const d26 = (h: number, m = 0) => `2027-01-26T${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:00-03:00`
@@ -187,11 +176,11 @@ function stageOperation(x: Script): void {
   x.contact(240, U.c, d26(17, 50), 'Biomedicina me interessa, mas o valor pesa bastante.')
   x.propose(240, U.c, d26(18), 1500)
 
-  // Devoluções em cada etapa da trilha.
-  x.refund(448, U.c, d26(12), 'paid')
-  x.refund(185, U.b, d26(13, 30), 'awaiting_payment')
-  x.refund(135, U.c, d26(15), 'verification')
-  x.refund(80, U.b, d27(8, 20), 'requested')
+  // Devoluções registradas: duas com a regularização concluída, duas ainda no Suporte.
+  x.refund(448, U.c, d26(12), true)
+  x.refund(185, U.b, d26(13, 30), true)
+  x.refund(135, U.c, d26(15), false)
+  x.refund(80, U.b, d27(8, 20), false)
 
   // Em contato, sem desfecho.
   x.contact(13, U.c, d26(18, 10), 'Posso pensar até amanhã?')
@@ -222,7 +211,7 @@ function stageAftercare(x: Script): void {
   x.executeTask(x.accept(marina.proposalId, U.a, day(d27, 11)).taskId, day(d27, 15))
 
   x.convert(2, U.a, day(d27, 11, 30))
-  x.refund(3, U.a, day(d27, 13), 'paid')
+  x.refund(3, U.a, day(d27, 13), true)
 
   // Pendências do preset de operação chegam ao fim.
   const openTask = (n: number) => s.academicTasks.find((t) => t.caseId === caseId(n) && t.kind === 'transfer' && t.status !== 'done' && t.status !== 'cancelled')!
@@ -238,9 +227,9 @@ function stageAftercare(x: Script): void {
   x.executeTask(x.accept(openProposal(12).id, U.c, day(d27, 15, 30)).taskId, day(d28, 10, 30))
   x.run('decideApproval', { approvalId: openProposal(306).approvalId!, decision: 'approved', reason: 'Dentro da política vigente.' }, U.mgr, day(d27, 16))
   x.executeTask(x.accept(openProposal(306).id, U.b, day(d27, 17)).taskId, day(d28, 11))
-  x.run('decideApproval', { approvalId: openProposal(240).approvalId!, decision: 'rejected', reason: 'Acima do piso de sustentabilidade da oferta.' }, U.dir, day(d27, 16, 30))
+  x.run('decideApproval', { approvalId: openProposal(240).approvalId!, decision: 'rejected', reason: 'Acima do piso de sustentabilidade da oferta.' }, U.mgr, day(d27, 16, 30))
   x.run('declineProposal', { proposalId: openProposal(240).id, reason: 'Valor sem a condição especial não cabe no orçamento.' }, U.c, day(d27, 17, 30))
-  x.refund(240, U.c, day(d27, 17, 40), 'paid', true)
+  x.refund(240, U.c, day(d27, 17, 40), true, true)
 
   for (const n of [185, 135, 80]) x.finishRefund(n, day(d28, 14))
   const p13 = x.propose(13, U.c, day(d27, 18))
@@ -248,13 +237,22 @@ function stageAftercare(x: Script): void {
   x.unreachable(190, U.b, day(d28, 16), true)
   x.unreachable(310, U.b, day(d28, 16, 30), true)
   x.run('recordInteraction', { caseId: caseId(14), kind: 'call_answered', text: 'Retorno realizado. Aluno optou pela devolução.' }, U.c, day(d27, 9, 15))
-  x.refund(14, U.c, day(d27, 9, 20), 'paid', true)
+  x.refund(14, U.c, day(d27, 9, 20), true, true)
   x.run('recordInteraction', { caseId: caseId(381), kind: 'call_answered', text: 'Retorno realizado no horário combinado. Quer seguir em Gestão de RH no semipresencial.' }, U.a, day(d27, 14))
   const p381 = x.propose(381, U.a, day(d27, 14, 10))
   x.executeTask(x.accept(p381.proposalId, U.a, day(d27, 14, 20)).taskId, day(d28, 9))
 
-  // Demais casos da fila: distribuição determinística, sempre por comandos.
-  const remaining = s.cases.filter((c) => c.stage === 'ready').map((c) => Number(c.id.slice(-4)))
+  distributeQueue(x, () => true)
+}
+
+/**
+ * Casos ainda na fila geral: distribuição determinística entre os consultores, sempre por comandos.
+ * `pick` escolhe quais casos entram (todos no pós-início; parte deles no cenário "Em andamento").
+ */
+function distributeQueue(x: Script, pick: (n: number) => boolean): void {
+  const s = x.s
+  const day = (date: string, h: number, m = 0) => `${date}T${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:00-03:00`
+  const remaining = s.cases.filter((c) => c.stage === 'ready' && !c.ownerId).map((c) => Number(c.id.slice(-4))).filter(pick)
   for (const n of remaining) {
     const owner = CONSULTANTS[n % 3]!
     const date = addDays('2027-01-27', n % 9)
@@ -264,12 +262,12 @@ function stageAftercare(x: Script): void {
       if (n === 132) {
         x.contact(n, owner, at, 'Nenhuma dessas opções serve para mim.')
         x.run('markNoSuitableOption', { caseId: caseId(n), note: 'Nenhuma oferta confirmada atende à rotina e ao objetivo declarados.' }, owner, at)
-        x.refund(n, owner, at, 'paid', true)
-      } else x.refund(n, owner, at, 'paid')
+        x.refund(n, owner, at, true, true)
+      } else x.refund(n, owner, at, true)
     } else if (h < 50) x.convert(n, owner, at, { discountBps: h % 4 === 0 ? 500 : 0 })
     else if (h < 58) x.convert(n, owner, day('2027-02-08', 10 + (n % 6)), { execute: false })
-    else if (h < 80) x.refund(n, owner, at, 'paid')
-    else if (h < 85) x.refund(n, owner, day('2027-02-05', 10 + (n % 6)), 'verification')
+    else if (h < 80) x.refund(n, owner, at, true)
+    else if (h < 85) x.refund(n, owner, day('2027-02-05', 10 + (n % 6)), false)
     else if (h < 91) x.unreachable(n, owner, at)
     else if (h < 96) x.contact(n, owner, day('2027-02-08', 14), 'Ainda estou avaliando com a minha família.')
     else {
@@ -289,7 +287,7 @@ function stageClosed(x: Script): void {
   }
   for (const t of s.academicTasks.filter((t) => t.kind === 'transfer' && t.status === 'queued')) x.executeTask(t.id, at('2027-02-10', 10))
   for (const c of s.cases.filter((c) => c.stage === 'in_contact')) {
-    x.refund(Number(c.id.slice(-4)), c.ownerId!, at('2027-02-10', 11), 'paid', true)
+    x.refund(Number(c.id.slice(-4)), c.ownerId!, at('2027-02-10', 11), true, true)
   }
   for (const c of s.cases.filter((c) => c.stage === 'refund')) x.finishRefund(Number(c.id.slice(-4)), at('2027-02-12', 10))
 
@@ -328,6 +326,8 @@ export function buildPreset(id: PresetId): DomainState {
     // mas sem o custo de rascunhos imutáveis em milhares de passos.
     const x = new Script(state)
     stageOperation(x)
+    // Dois em cada três casos da fila já foram atendidos; os demais seguem aguardando contato.
+    if (id === 'progress') distributeQueue(x, (n) => Math.floor(n / 3) % 3 !== 0)
     if (id === 'aftercare' || id === 'closed') stageAftercare(x)
     if (id === 'closed') stageClosed(x)
     state.clock = { mode: 'fixed_demo', now: preset.at }

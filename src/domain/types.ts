@@ -7,11 +7,14 @@ export type Id = string
 export type IsoInstant = string
 export type IsoDate = string
 
-export type Role = 'director' | 'manager' | 'consultant' | 'support' | 'finance' | 'admin'
-export type Modality = 'presencial' | 'semipresencial'
-export type Shift = 'diurno' | 'noturno' | 'agenda'
+/** 'manager' é o perfil único Diretoria/Gestão. Não há perfil Financeiro: a devolução é paga em outro sistema. */
+export type Role = 'manager' | 'consultant' | 'support' | 'admin'
+/** Formatos reais do catálogo público de graduação (anchieta.br/graduacao). */
+export type Modality = 'presencial' | 'presencial_integral' | 'presencial_intensivo' | 'semipresencial' | 'ead' | 'ead_live'
+export type Shift = 'diurno' | 'noturno' | 'integral' | 'agenda' | 'online'
 
-export type DecisionOutcome = 'pending' | 'confirmed' | 'not_formed' | 'strategic_confirmed' | 'suspended'
+/** Cadastro binário da Diretoria/Gestão: 'confirmed' = Ofertado, 'not_formed' = Não ofertado. Não existe estado intermediário. */
+export type DecisionOutcome = 'confirmed' | 'not_formed'
 export type RiskLevel = 'low' | 'attention' | 'high' | 'insufficient_data'
 export type CampaignPhase = 'anticipation' | 'operation' | 'closing' | 'closed'
 
@@ -73,7 +76,8 @@ export interface KpiSnapshot {
   accepted: number
   converted: number
   refundRequested: number
-  refundPaidCents: number
+  /** Valor das devoluções encaminhadas ao sistema financeiro externo. */
+  refundForwardedCents: number
   concessionCents: number
   pendingItems: number
 }
@@ -83,10 +87,6 @@ export interface Decision {
   version: number
   decidedAt?: IsoInstant
   actorId?: Id
-  reference?: string
-  reason?: string
-  strategicBudgetCents?: number
-  validUntil?: IsoDate
 }
 
 export interface DecisionRecord extends Decision {
@@ -111,13 +111,16 @@ export interface Offering {
   startDate: IsoDate
   capacity: number
   occupiedSeats: number
-  role: 'origin' | 'destination' | 'blocked'
+  /** 'catalog' = item do catálogo real sem matrículas sintéticas; só vira alternativa por mesmo curso ou interesse declarado. */
+  role: 'origin' | 'destination' | 'blocked' | 'catalog'
   tuitionCents: number
   installmentCount: number
   decision: Decision
   economics?: OfferingEconomics
   degree?: string
   area?: string
+  /** Selo "Novo" do catálogo público. */
+  isNew?: boolean
   sourceKind: 'synthetic'
 }
 
@@ -194,7 +197,7 @@ export interface Payment {
 }
 
 export interface NextAction {
-  kind: 'return' | 'first_contact' | 'await_student' | 'await_approval' | 'await_support' | 'await_finance'
+  kind: 'return' | 'first_contact' | 'await_student' | 'await_approval' | 'await_support'
   at?: IsoInstant
   channel?: Channel
   note?: string
@@ -308,7 +311,8 @@ export interface Proposal {
   closedReason?: string
 }
 
-export type ApprovalLevel = 'manager' | 'director'
+/** Alçada única acima do consultor: Diretoria/Gestão. */
+export type ApprovalLevel = 'manager'
 
 export interface Approval {
   id: Id
@@ -358,14 +362,8 @@ export interface AcademicTask {
   returns: { at: IsoInstant; actorId: Id; reason: string; resolvedAt?: IsoInstant; resolution?: string }[]
 }
 
-export type RefundStatus =
-  | 'requested'
-  | 'verification'
-  | 'pending_info'
-  | 'awaiting_payment'
-  | 'paid'
-  | 'closed_duplicate'
-  | 'closed_undue'
+/** A devolução é só registrada e encaminhada: conferência e pagamento acontecem no sistema financeiro externo. */
+export type RefundStatus = 'requested'
 
 export interface RefundRequest {
   id: Id
@@ -379,9 +377,7 @@ export interface RefundRequest {
   idempotencyKey: string
   status: RefundStatus
   createdAt: IsoInstant
-  financeOwnerId?: Id
   trail: { at: IsoInstant; actorId: Id; status: RefundStatus; note?: string }[]
-  paidAt?: IsoInstant
 }
 
 export interface FollowUp {
@@ -484,9 +480,8 @@ export interface Policies {
   leaseMinutes: number
   proposalValidityHours: number
   consultantDiscountBps: number
-  managerDiscountBps: number
-  /** Teto absoluto da demonstração; acima disso não há alçada cadastrada. */
-  directorDiscountBps: number
+  /** Alçada da Diretoria/Gestão e teto da demonstração; acima disso não há alçada cadastrada. */
+  leadershipDiscountBps: number
   discountInstallments: number
   maxContactAttempts: number
   attentionGapBps: number
@@ -533,8 +528,6 @@ export interface DomainState {
   users: User[]
   offerings: Offering[]
   decisionLog: DecisionRecord[]
-  /** Parecer preparado pela gestão para apoiar a decisão da diretoria. */
-  decisionDrafts: Record<Id, { outcome: DecisionOutcome; note: string; actorId: Id; at: IsoInstant }>
   forecastParams: Record<Id, ForecastParams>
   students: Student[]
   enrollments: Enrollment[]

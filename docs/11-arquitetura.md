@@ -24,13 +24,13 @@ Na instalação, consultar a documentação correspondente às versões estávei
 ## Organização proposta
 
 - `src/app/`: router, providers, shell e entrada.
-- `src/features/forecast/`, `offerings/`, `cases/`, `copilot/`, `proposals/`, `academic/`, `refunds/`, `campaigns/`, `analytics/`: telas, componentes e hooks específicos.
-- `src/domain/`: tipos, políticas, cálculos, elegibilidade, fila e transições puras.
+- `src/features/dashboard/` (painel da Diretoria/Gestão), `offerings/` (lista, catálogo, `OfferSwitch`, `CatalogDialog`), `cases/` (atendimento, `ConfirmTransfer`), `students/`, `proposals/`, `academic/`, `refunds/`, `communication/`, `campaigns/`, `analytics/`, `demo/`, `help/`: telas, componentes e hooks específicos.
+- `src/domain/`: tipos, políticas, cálculos, elegibilidade, fila, transições puras, permissões (`access.ts`) e números do painel (`panel.ts`).
 - `src/services/contracts/`: interfaces de repositórios.
 - `src/services/local/`: implementação local com simulações de atraso/falha configuráveis.
 - `src/shared/ui/`: primitivas de UI, sem regras de negócio.
-- `src/shared/motion/`, `format/`, `lib/`: tokens de movimento, moeda/data e utilitários pequenos.
-- `src/data/`: importação da base sintética versionada.
+- `src/shared/motion/`, `format/`, `lib/`: tokens de movimento (inclui `CountUp` e `Donut` em `data.tsx`), moeda/data e utilitários pequenos.
+- `src/data/`: base sintética (`seed.ts`), catálogo real gerado (`catalog.ts`, por `scripts/fetch_catalog.py`) e cenários (`presets.ts`).
 - `src/test/` e `e2e/`: fixtures e testes dos fluxos críticos.
 
 Evitar camadas vazias, pastas para um arquivo trivial e componentes genéricos com dezenas de booleans. Extrair por responsabilidade e mudança provável, não por uma cota arbitrária de linhas. Uma mudança de alçada deve alterar política, não cinco telas. Uma mudança de azul deve alterar token, não cada botão.
@@ -39,7 +39,7 @@ Evitar camadas vazias, pastas para um arquivo trivial e componentes genéricos c
 
 UI solicita comando → serviço verifica papel, versão e pré-condições → função de domínio calcula transição → store persiste alteração e evento juntos → seletores recalculam painel/fila. Nenhum componente muda status por atribuição direta. Erro retorna código e mensagem acionável; não depende de texto para lógica.
 
-Comandos principais: `recordDecision`, `claimNextCase`, `recordInteraction`, `updatePreference`, `createProposal`, `requestApproval`, `decideApproval`, `acceptProposal`, `scheduleReturn`, `transferCase`, `completeAcademicTask`, `requestRefund`, `completeRefund`, `closeCampaign`.
+Comandos principais: `recordDecision` (Ofertado Sim/Não; `previewDecision` calcula o impacto antes), `claimNextCase`, `recordInteraction`, `updatePreference`, `createProposal`, `requestApproval`, `decideApproval`, `acceptProposal`, `confirmTransfer`, `scheduleReturn`, `transferCase`, `completeAcademicTask`, `requestRefund`, `closeCampaign`. Não há comando de pagamento de devolução.
 
 Cada comando recebe `commandId`, `actor`, `expectedVersion` quando aplicável e `clock`. Repetição do mesmo `commandId` retorna resultado anterior; versão obsoleta retorna conflito sem sobrescrever. Guardas do front são para demonstração; produção deve repetir a autorização no servidor.
 
@@ -47,9 +47,9 @@ Cada comando recebe `commandId`, `actor`, `expectedVersion` quando aplicável e 
 
 Um store de domínio normalizado e um store pequeno de preferências. Estado inicial vem do JSON sintético. Persistência com `schemaVersion`, migração explícita e recuperação de dados inválidos oferecendo restaurar demo, sem travar a aplicação. Não recalcular/serializar 500 registros a cada tecla do composer; rascunho local e escrita só no momento adequado.
 
-Relógio injetável controla proposta expirada, reserva, SLA, D+7/D+30 e fases. No uso normal, hora atual. Na apresentação, relógio fixo com badge “Cenário simulado em 27/01/2027”. Nunca mostrar dado futuro como observado em novembro.
+Relógio injetável controla proposta expirada, reserva, SLA, D+7/D+30 e fases. No uso normal, hora atual. Na apresentação, relógio fixo com badge da data do cenário (por exemplo, 27/01/2027). Nunca mostrar dado futuro como observado em novembro.
 
-Criar presets `anticipation`, `operation`, `aftercare`, `closed`. Cada preset restaura uma base coerente e mostra o que altera. A troca pede confirmação local se houver trabalho fictício não salvo. É ferramenta de apresentação, não recurso de produção.
+Presets (`src/data/presets.ts`): `anticipation` (Antecipação), `operation` (Operação), `progress` (Em andamento, cenário de abertura definido em `DEFAULT_PRESET` de `src/services/store.ts`), `aftercare` (Pós-início), `closed` (Encerrada). Cada preset restaura uma base coerente e mostra o que altera. `SCHEMA_VERSION` = 4; dado salvo em versão anterior volta à base de demonstração. A troca pede confirmação local se houver trabalho fictício não salvo. É ferramenta de apresentação, não recurso de produção.
 
 ## Copiloto da demonstração e futuro
 

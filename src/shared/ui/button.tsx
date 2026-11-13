@@ -4,16 +4,18 @@ import type { ButtonHTMLAttributes, Ref } from 'react'
 import { cn } from '@/shared/lib/cn'
 
 const button = cva(
-  'inline-flex shrink-0 items-center justify-center gap-2 rounded-ctl font-medium whitespace-nowrap select-none transition-[background-color,border-color,color,box-shadow,transform] duration-[120ms] active:scale-[0.99] disabled:pointer-events-none disabled:opacity-50 [&_svg]:size-4 [&_svg]:shrink-0',
+  'inline-flex shrink-0 items-center justify-center gap-2 rounded-ctl font-medium whitespace-nowrap select-none transition-[background-color,border-color,color,box-shadow,filter,opacity,scale] active:scale-[0.97] disabled:pointer-events-none disabled:opacity-50 [&_svg]:size-4 [&_svg]:shrink-0',
   {
     variants: {
       variant: {
         primary: 'bg-action text-action-fg hover:brightness-110 dark:hover:brightness-95',
-        secondary: 'border border-line-strong bg-surface text-fg hover:bg-hover',
+        secondary: 'bg-neutral-soft text-fg hover:bg-hover',
+        /** Sobre superfície de ênfase (azul): botão claro com o texto na cor da superfície. */
+        inverse: 'bg-[var(--emphasis-text)] text-[var(--emphasis-surface)] hover:brightness-95',
         ghost: 'text-muted hover:bg-hover hover:text-fg',
         soft: 'bg-brand-soft text-brand-soft-fg hover:brightness-[0.97] dark:hover:brightness-110',
         danger: 'border border-danger/40 bg-surface text-danger hover:bg-danger-soft',
-        link: 'h-auto px-0 text-action underline-offset-4 hover:underline',
+        link: 'h-auto px-0 text-link underline-offset-4 hover:underline',
       },
       size: {
         sm: 'h-8 px-2.5 text-[13px] max-md:h-10',

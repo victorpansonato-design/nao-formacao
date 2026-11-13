@@ -5,3 +5,6 @@ dist
 test-results
 playwright-report
 *.tsbuildinfo
+.vercel
+# Referências internas permanecem somente no ambiente local.
+design/references/*.mp4

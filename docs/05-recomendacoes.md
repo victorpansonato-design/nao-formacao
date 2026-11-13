@@ -9,7 +9,7 @@ Nenhum score supera um bloqueio de disponibilidade ou uma restrição expressa d
 
 ## Elegibilidade obrigatória
 
-Oferta com decisão `confirmed` ou `strategic_confirmed`, entrada compatível, unidade acessível, vaga livre/reservável, agenda compatível, modalidade permitida e condições comerciais vigentes. Duração, titulação e exigências de ingresso precisam estar cadastradas e conferidas. Validade da confirmação deve cobrir a entrada.
+Turma ofertada (`decision.outcome = 'confirmed'`; desde 12/11/2026 não existe `strategic_confirmed`), entrada compatível, unidade acessível, vaga livre/reservável, agenda compatível, modalidade permitida e condições comerciais vigentes. Duração, titulação e exigências de ingresso precisam estar cadastradas e conferidas. Validade da confirmação deve cobrir a entrada.
 
 `eligible = confirmed && active && seatsAvailable && scheduleCompatible && locationCompatible && pricePolicyValid && entryCompatible`
 

@@ -1,21 +1,39 @@
 # Acessos, fila e atribuição comercial
 
-## Matriz de acesso proposta
+## Perfis e permissões
 
-| Capacidade | Diretoria | Gestão/CX | Consultor | Suporte | Financeiro | Admin técnico |
-|---|---|---|---|---|---|---|
-| Radar agregado | Sim | Sim | Resumo necessário | Resumo necessário | Sim | Configuração |
-| Confirmar/não formar oferta | Sim | Preparar | Não | Não | Parecer | Não |
-| Custos/margem detalhados | Sim | Conforme escopo | Não | Não | Sim | Sem acesso padrão |
-| Fila e dados mínimos de contato | Leitura por necessidade | Sim | Elegíveis ao seu escopo | Sua tarefa | Sua tarefa | Sem acesso padrão |
-| Conversa comercial completa | Por necessidade | Sim | Caso sob responsabilidade | Resumo do acordo | Resumo financeiro | Não por padrão |
-| Proposta padrão | Não operacional | Sim | Sim | Não | Não | Não |
-| Autorizar exceção | Alçada maior | Conforme alçada | Solicitar | Não | Parecer/alçada | Não |
-| Ajuste acadêmico | Acompanhar | Acompanhar | Acompanhar | Executar | Acompanhar | Não |
-| Devolução | Acompanhar | Acompanhar | Solicitar/acompanhar | Regularizar | Verificar/concluir | Não |
-| Indicadores por consultor | Sim | Sim | Próprios | Operacionais | Financeiros | Configuração |
-| Exportar dados pessoais | Restrito | Restrito | Sem exportação geral | Escopo da tarefa | Escopo financeiro | Não por padrão |
-| Catálogo, políticas e usuários | Aprovar política | Operar catálogo | Leitura | Leitura | Política financeira | Configurar |
+Revisão de 12/11/2026: quatro perfis. **Diretoria/Gestão** é um perfil único (role `manager`, usuário `DEMO-USER-GEST`); não existem perfis separados de Diretoria, Gestão/CX ou Financeiro. Fonte da verdade: `src/domain/access.ts`.
+
+| Rota | Diretoria/Gestão | Consultor | Suporte | Admin técnico |
+|---|---|---|---|---|
+| Primeira tela | Painel `/visao-geral` | `/atendimentos` | `/ajustes` | `/configuracoes` |
+| Painel | Sim | — | — | — |
+| Ofertas | Sim | Sim | Sim | Sim |
+| Alunos | Sim | Sim | — | — |
+| Atendimentos, Propostas | Sim | Sim | — | — |
+| Aprovações, Comunicação | Sim | — | — | — |
+| Ajustes acadêmicos | Sim | Sim | Sim | — |
+| Devoluções | Sim | Sim | Sim | — |
+| Resultados | Sim | Sim | Sim | — |
+| Configurações | Sim | — | — | Sim |
+| Ajuda, Controle da demo | Sim | Sim | Sim | Sim |
+
+| Ação | Quem |
+|---|---|
+| Cadastrar Ofertado Sim/Não (`decision.record`) | Diretoria/Gestão |
+| Ver economia, recalcular cenário de tendência | Diretoria/Gestão |
+| Retirar caso da fila (Atender próximo) | Consultor |
+| Registrar contato, criar proposta, pedir devolução, ver conversa | Consultor (caso sob sua responsabilidade) e Diretoria/Gestão |
+| Confirmar troca realizada no Lyceum (`confirmTransfer`) | Consultor responsável e Diretoria/Gestão |
+| Transferir caso entre consultores | Diretoria/Gestão |
+| Aprovar desconto acima de 5% e até 20% | Diretoria/Gestão |
+| Executar ajuste e regularização (checklist) | Suporte |
+| Registrar acompanhamento D+7/D+30 | Diretoria/Gestão e Consultor |
+| Editar e disparar réguas | Diretoria/Gestão |
+| Campanha, política, importação | Diretoria/Gestão e Admin técnico |
+| Exportar dados pessoais | Diretoria/Gestão |
+
+Na aba Ofertas todos os perfis veem os mesmos botões Todos / Ofertados / Não ofertados; só a Diretoria/Gestão vê o Sim/Não como controle.
 
 Escopo por campus/polo/campanha é independente do papel. Semipresencial deve incluir agenda de encontros, não apenas rótulo diurno/noturno. Auditoria registra visualizações sensíveis quando implementada em produção. Na demo, seletor “Ver como” e guardas de rota/ação são simulação de experiência, não autenticação.
 
@@ -27,7 +45,7 @@ Ordenação proposta, determinística: retorno agendado vencido do responsável;
 
 ## Posse e continuidade
 
-Ao retirar caso, criar `AssignmentLease` com responsável, versão e vencimento. Parâmetro inicial da demo: 15 minutos, renovado por atividade significativa; a expiração antes do primeiro contato devolve à fila. Depois de contato útil, preservar responsável e próximo compromisso; ausência prolongada vai para revisão/transferência da gestão, sem soltar um aluno em negociação silenciosamente.
+Ao retirar caso, criar `AssignmentLease` com responsável, versão e vencimento. Parâmetro inicial da demo: 15 minutos, renovado por atividade significativa; a expiração antes do primeiro contato devolve à fila. Depois de contato útil, preservar responsável e próximo compromisso; ausência prolongada vai para revisão/transferência da Diretoria/Gestão, sem soltar um aluno em negociação silenciosamente.
 
 Consultor pode liberar com motivo; transferências registram quem entregou, quem assumiu e por quê. “Pular” exige impedimento operacional, com limite configurável e revisão. Agenda não pode ser usada para reter indefinidamente casos sem atendimento.
 
@@ -43,4 +61,4 @@ Mudança após aceite, duplicidade, cancelamento e transferência geram revisão
 
 Acompanhar conversão e qualidade junto com número de casos elegíveis retirados, contatos úteis, tempo ativo, retornos cumpridos, dificuldade observável por tipo de caso e retrabalho. Exibir denominador e amostra ao lado de cada taxa. Não criar ranking público de “melhor vendedor” só por receita bruta ou porcentagem em poucos casos.
 
-Gestão vê gargalos por setor e fluxo, não apenas nomes. Consultor vê seu progresso e próximos compromissos. CX acompanha experiência, reclamações e qualidade de solução, mesmo quando o desfecho é devolução.
+Diretoria/Gestão vê gargalos por setor e fluxo e, no painel, a carteira de cada consultor pelo nome (alunos, contatados, virados e conversão sobre a própria carteira; `16-painel-diretoria-gestao.md`). Consultor vê seu progresso e próximos compromissos. Experiência, reclamações e qualidade de solução são acompanhadas mesmo quando o desfecho é devolução.

@@ -79,14 +79,14 @@ export function funnel(s: DomainState, f: CaseFilter = {}): Funnel {
     key, label, value: list.length, caseIds: ids(list), definition, denominator, denominatorLabel,
   })
   return {
-    monitored: kpi('monitored', 'Em monitoramento', cases.filter((c) => c.stage === 'preparation'), 'Matrículas em ofertas acompanhadas com decisão pendente. Não são alunos oficialmente afetados.'),
-    affected: kpi('affected', 'Afetados oficiais', affected, 'Casos elegíveis após não formação registrada pela diretoria, sem duplicatas.'),
+    monitored: kpi('monitored', 'Em monitoramento', cases.filter((c) => c.stage === 'preparation'), 'Matrículas em turmas ofertadas e acompanhadas. Não são alunos afetados.'),
+    affected: kpi('affected', 'Alunos afetados', affected, 'Matriculados em turmas cadastradas como não ofertadas pela Diretoria/Gestão, sem duplicatas.'),
     awaitingFirstContact: kpi('awaitingFirstContact', 'Aguardando primeiro contato', affected.filter((c) => c.stage === 'ready'), 'Afetados que ainda não tiveram a primeira abordagem registrada.', n, 'afetados'),
     usefulContact: kpi('usefulContact', 'Contato útil', affected.filter((c) => useful.has(c.id)), 'Casos com resposta do aluno ou ligação atendida. Tentativa sem resposta não conta.', n, 'afetados'),
     withProposal: kpi('withProposal', 'Com proposta válida', affected.filter((c) => proposalCases.has(c.id)), 'Casos com proposta elegível vigente ou aceita. Versões não somam como novos alunos.', n, 'afetados'),
     accepted: kpi('accepted', 'Aceite comercial', affected.filter((c) => acceptedCases.has(c.id)), 'Casos com aceite da versão válida. Ainda pode haver falha de execução.', n, 'afetados'),
-    awaitingExecution: kpi('awaitingExecution', 'Aguardando ajuste', affected.filter((c) => c.stage === 'awaiting_execution'), 'Aceites com tarefa do Suporte ainda não conferida, incluindo devolvidas para correção.'),
-    converted: kpi('converted', 'Continuidade efetivada', affected.filter((c) => c.stage === 'converted'), 'Casos com ajuste acadêmico conferido pelo Suporte. Aceite sozinho não conta.', n, 'afetados'),
+    awaitingExecution: kpi('awaitingExecution', 'Aguardando ajuste', affected.filter((c) => c.stage === 'awaiting_execution'), 'Aceites cuja troca no Lyceum ainda não foi confirmada, incluindo devolvidas para correção.'),
+    converted: kpi('converted', 'Continuidade efetivada', affected.filter((c) => c.stage === 'converted'), 'Casos com a troca para outra turma ofertada confirmada no Lyceum. Aceite sozinho não conta.', n, 'afetados'),
     declined: kpi('declined', 'Recusas registradas', affected.filter((c) => Boolean(c.declineReason)), 'Recusa expressa de proposta registrada. Não contato não é recusa.', n, 'afetados'),
     exitRequested: kpi('exitRequested', 'Pediu devolução', affected.filter((c) => c.stage === 'refund' || c.outcome === 'refund' || c.outcome === 'regularization_only'), 'Casos que escolheram regularização/restituição. Não é falha de atendimento.', n, 'afetados'),
     unreachable: kpi('unreachable', 'Sem contato após cadência', affected.filter((c) => c.stage === 'unreachable'), 'Cadência esgotada e em revisão da gestão.', n, 'afetados'),
@@ -111,7 +111,6 @@ function summarize(hours: number[]): Durations {
 export interface Operations {
   firstUsefulContact: Durations
   execution: Durations
-  refund: Durations
   tasksAnalysed: number
   reworkEvents: number
   reworkCases: number
@@ -137,8 +136,6 @@ export function operations(s: DomainState, f: CaseFilter = {}): Operations {
   const tasks = s.academicTasks.filter((t) => caseIds.has(t.caseId) && t.status !== 'cancelled')
   const execution: number[] = []
   for (const t of tasks) if (t.kind === 'transfer' && t.status === 'done' && t.completedAt) execution.push(hours(t.createdAt, t.completedAt))
-  const refundHours: number[] = []
-  for (const r of s.refunds) if (caseIds.has(r.caseId) && r.status === 'paid' && r.paidAt) refundHours.push(hours(r.createdAt, r.paidAt))
   const open = tasks.filter((t) => t.status !== 'done')
   const returnEvents = s.events.filter((e) => e.caseId && caseIds.has(e.caseId) && (e.action === 'return.fulfilled' || e.action === 'return.late'))
   const overdue = cases.filter((c) => c.nextAction?.kind === 'return' && c.nextAction.at !== undefined && ms(c.nextAction.at) <= now).length
@@ -146,7 +143,6 @@ export function operations(s: DomainState, f: CaseFilter = {}): Operations {
   return {
     firstUsefulContact: summarize(firstContact),
     execution: summarize(execution),
-    refund: summarize(refundHours),
     tasksAnalysed: tasks.length,
     reworkEvents: tasks.reduce((sum, t) => sum + t.returns.length, 0),
     reworkCases: tasks.filter((t) => t.returns.length > 0).length,
@@ -165,10 +161,9 @@ export interface Financials {
   convertedCount: number
   concessionCents: number
   concessionCount: number
-  refundPendingCents: number
-  refundPendingCount: number
-  refundPaidCents: number
-  refundPaidCount: number
+  /** Devoluções registradas e encaminhadas ao sistema financeiro externo. */
+  refundForwardedCents: number
+  refundForwardedCount: number
   creditCarriedCents: number
 }
 
@@ -194,17 +189,13 @@ export function financials(s: DomainState, f: CaseFilter = {}): Financials {
     }
   }
   const refunds = s.refunds.filter((r) => byId.has(r.caseId))
-  const pending = refunds.filter((r) => r.status !== 'paid' && !r.status.startsWith('closed'))
-  const paid = refunds.filter((r) => r.status === 'paid')
   return {
     nominalConvertedCents: nominal,
     convertedCount,
     concessionCents: concession,
     concessionCount,
-    refundPendingCents: pending.reduce((sum, r) => sum + r.amountCents, 0),
-    refundPendingCount: pending.length,
-    refundPaidCents: paid.reduce((sum, r) => sum + r.amountCents, 0),
-    refundPaidCount: paid.length,
+    refundForwardedCents: refunds.reduce((sum, r) => sum + r.amountCents, 0),
+    refundForwardedCount: refunds.length,
     creditCarriedCents: credit,
   }
 }
@@ -244,7 +235,6 @@ export function continuity(s: DomainState, f: CaseFilter = {}): Continuity[] {
 export interface ClosureCheck {
   commercialOpen: Id[]
   tasksOpen: Id[]
-  refundsOpen: Id[]
   unreachable: Id[]
   followUpsPending: number
   canClose: boolean
@@ -255,12 +245,10 @@ export function closureCheck(s: DomainState): ClosureCheck {
   const commercialOpen = s.cases.filter((c) => ['ready', 'in_contact', 'scheduled', 'proposal'].includes(c.stage)).map((c) => c.id)
   const unreachable = s.cases.filter((c) => c.stage === 'unreachable').map((c) => c.id)
   const tasksOpen = s.academicTasks.filter((t) => t.status !== 'done' && t.status !== 'cancelled').map((t) => t.id)
-  const refundsOpen = s.refunds.filter((r) => r.status !== 'paid' && !r.status.startsWith('closed')).map((r) => r.id)
-  const needsAssumedExceptions = tasksOpen.length + refundsOpen.length + unreachable.length > 0
+  const needsAssumedExceptions = tasksOpen.length + unreachable.length > 0
   return {
     commercialOpen,
     tasksOpen,
-    refundsOpen,
     unreachable,
     followUpsPending: s.followUps.filter((x) => x.observation === null).length,
     canClose: commercialOpen.length === 0,
@@ -279,9 +267,9 @@ export function kpiSnapshot(s: DomainState): KpiSnapshot {
     accepted: fn.accepted.value,
     converted: fn.converted.value,
     refundRequested: fn.exitRequested.value,
-    refundPaidCents: fin.refundPaidCents,
+    refundForwardedCents: fin.refundForwardedCents,
     concessionCents: fin.concessionCents,
-    pendingItems: check.tasksOpen.length + check.refundsOpen.length + check.unreachable.length,
+    pendingItems: check.tasksOpen.length + check.unreachable.length,
   }
 }
 

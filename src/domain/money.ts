@@ -35,8 +35,7 @@ export type Authority = { kind: 'consultant' } | { kind: 'approval'; level: Appr
 /** Quem pode autorizar um desconto, segundo a política de demonstração vigente. */
 export function authorityFor(discountBps: number, p: Policies): Authority {
   if (discountBps <= p.consultantDiscountBps) return { kind: 'consultant' }
-  if (discountBps <= p.managerDiscountBps) return { kind: 'approval', level: 'manager' }
-  if (discountBps <= p.directorDiscountBps) return { kind: 'approval', level: 'director' }
+  if (discountBps <= p.leadershipDiscountBps) return { kind: 'approval', level: 'manager' }
   return { kind: 'none' }
 }
 

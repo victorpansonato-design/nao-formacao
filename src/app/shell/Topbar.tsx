@@ -1,38 +1,53 @@
-import { Bell, CalendarClock, LifeBuoy, Menu as MenuIcon, Moon, Search, Sun } from 'lucide-react'
-import { useMemo, useRef, useState } from 'react'
-import { Link } from 'react-router'
+import { Bell, CalendarClock, Check, PanelLeft, Search } from 'lucide-react'
+import { useMemo, useState } from 'react'
+import { Link, useLocation, useNavigate } from 'react-router'
+import { canAccess, HOME, ROLE_LABEL, type RouteKey } from '@/domain/access'
 import { PHASE } from '@/domain/labels'
-import { resolvedTheme, useSession } from '@/services/session'
+import type { User } from '@/domain/types'
+import { useSession } from '@/services/session'
 import { useActor, useDispatch, useDomain } from '@/services/store'
 import { fmtDateShort, fmtTime, relative } from '@/shared/format'
-import { runThemeTransition } from '@/shared/motion'
 import { Button } from '@/shared/ui/button'
-import { Popover, Tooltip } from '@/shared/ui/overlays'
-import { Badge, Kbd } from '@/shared/ui/primitives'
+import { Menu, MenuItem, MenuLabel, Popover, Tooltip } from '@/shared/ui/overlays'
+import { Avatar, Kbd } from '@/shared/ui/primitives'
 
-function ThemeToggle() {
-  const theme = useSession((s) => resolvedTheme(s.theme))
-  const setTheme = useSession((s) => s.setTheme)
-  const ref = useRef<HTMLButtonElement>(null)
-  const next = theme === 'dark' ? 'light' : 'dark'
-  const label = next === 'dark' ? 'Mudar para o tema escuro' : 'Mudar para o tema claro'
+/** Perfil simulado à direita, como na referência: nome, papel em selo e iniciais. O menu troca o perfil da demonstração. */
+function Profile() {
+  const actor = useActor()
+  const users = useDomain((d) => d.users)
+  const location = useLocation()
+  const navigate = useNavigate()
+  const setUser = useSession((s) => s.setUser)
+  const name = actor.name.replace(/ demo$/, '')
+  // Perfis sem pessoa (Diretoria/Gestão, Suporte) têm o nome igual ao papel: o selo diz que é simulação.
+  const badge = name === ROLE_LABEL[actor.role] ? 'Perfil simulado' : ROLE_LABEL[actor.role]
+  const switchTo = (user: User) => {
+    setUser(user.id)
+    const segment = location.pathname.split('/')[1] as RouteKey | undefined
+    if (!segment || !canAccess(user.role, segment)) navigate(HOME[user.role])
+  }
   return (
-    <Tooltip label={label}>
-      <Button
-        ref={ref}
-        variant="ghost"
-        size="icon-sm"
-        aria-label={label}
-        onClick={() => {
-          const rect = ref.current?.getBoundingClientRect()
-          const origin = rect ? { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 } : { x: innerWidth, y: 0 }
-          // O foco permanece no botão; a preferência é salva pelo store de sessão.
-          runThemeTransition(origin, () => setTheme(next))
-        }}
-      >
-        {next === 'dark' ? <Moon /> : <Sun />}
-      </Button>
-    </Tooltip>
+    <Menu
+      align="end"
+      trigger={
+        <button type="button" aria-label={`Perfil simulado: ${name}, ${ROLE_LABEL[actor.role]}. Trocar perfil`} className="flex h-10 shrink-0 items-center gap-3 rounded-ctl pr-1 pl-2 text-right hover:bg-hover">
+          <span className="leading-tight max-md:hidden">
+            <span className="block text-[13px] font-medium text-fg">{name}</span>
+            <span className="mt-0.5 inline-block rounded-[5px] bg-brand-soft px-1.5 py-px text-[10px] font-semibold tracking-[0.06em] text-brand-soft-fg uppercase">{badge}</span>
+          </span>
+          <Avatar name={name} />
+        </button>
+      }
+    >
+      <MenuLabel>Ver como · demonstração</MenuLabel>
+      {users.map((user) => (
+        <MenuItem key={user.id} onSelect={() => switchTo(user)}>
+          <Avatar name={user.name.replace(/ demo$/, '')} size="sm" />
+          <span className="flex-1">{user.name.replace(/ demo$/, '')}<span className="block text-xs text-muted">{ROLE_LABEL[user.role]}</span></span>
+          {user.id === actor.id ? <Check className="!text-fg" aria-label="Perfil atual" /> : null}
+        </MenuItem>
+      ))}
+    </Menu>
   )
 }
 
@@ -56,7 +71,7 @@ function Notifications() {
       trigger={
         <Button variant="ghost" size="icon-sm" aria-label={unread > 0 ? `Avisos internos: ${unread} não lido(s)` : 'Avisos internos'} className="relative">
           <Bell />
-          {unread > 0 ? <span className="absolute top-1 right-1 size-2 rounded-full bg-danger ring-2 ring-surface" aria-hidden /> : null}
+          {unread > 0 ? <span className="motion-dialog absolute top-1 right-1 size-2 rounded-full bg-danger ring-2 ring-bar" data-state="open" aria-hidden /> : null}
         </Button>
       }
     >
@@ -82,7 +97,7 @@ function Notifications() {
             return (
               <li key={n.id}>
                 {n.link ? (
-                  <Link to={n.link} onClick={() => setOpen(false)} className="block px-3 py-2 hover:bg-hover">
+                  <Link to={n.link} onClick={() => setOpen(false)} className="block px-3 py-2 transition-colors hover:bg-hover">
                     {body}
                   </Link>
                 ) : (
@@ -100,47 +115,35 @@ function Notifications() {
 export function Topbar({ onOpenNav, onOpenSearch }: { onOpenNav: () => void; onOpenSearch: () => void }) {
   const campaign = useDomain((d) => d.campaign)
   const clock = useDomain((d) => d.clock)
-  const unit = useDomain((d) => d.units[0])
+  const collapsed = useSession((s) => s.sidebarCollapsed)
+  const setCollapsed = useSession((s) => s.setSidebarCollapsed)
   return (
-    <header className="flex h-12 shrink-0 items-center gap-2 border-b border-line bg-surface px-3 md:px-4">
-      <Button variant="ghost" size="icon-sm" aria-label="Abrir navegação" className="lg:hidden" onClick={onOpenNav}>
-        <MenuIcon />
-      </Button>
-      <div className="flex min-w-0 items-center gap-2">
-        <p className="truncate text-sm font-medium">Entrada {campaign.intake}</p>
-        <Badge tone={campaign.phase === 'closed' ? 'neutral' : 'brand'} className="max-sm:hidden">{PHASE[campaign.phase]}</Badge>
-        <span className="truncate text-[13px] text-muted max-xl:hidden">{unit?.name.split(' — ')[0]} e polos</span>
+    <header className="flex h-[60px] shrink-0 items-center gap-2 bg-bar pr-3 md:gap-3 md:pr-5">
+      {/* Compartimento do botão da navegação, separado do título por um divisor de altura total. */}
+      <div className="flex h-full shrink-0 items-center border-r border-line px-2.5 md:px-3">
+        <Button variant="ghost" size="icon-sm" aria-label="Abrir navegação" className="lg:hidden" onClick={onOpenNav}><PanelLeft /></Button>
+        <Tooltip label={collapsed ? 'Expandir navegação' : 'Recolher navegação'}>
+          <Button variant="ghost" size="icon-sm" aria-label={collapsed ? 'Expandir navegação' : 'Recolher navegação'} aria-expanded={!collapsed} className="max-lg:hidden" onClick={() => setCollapsed(!collapsed)}><PanelLeft /></Button>
+        </Tooltip>
       </div>
-
-      <button
-        type="button"
-        onClick={onOpenSearch}
-        className="ml-auto flex h-8 min-w-0 items-center gap-2 rounded-ctl border border-line bg-sunken px-2.5 text-[13px] text-subtle transition-colors duration-[120ms] hover:border-line-strong hover:text-muted md:w-[280px] max-md:size-10 max-md:justify-center max-md:border-0 max-md:bg-transparent"
-        aria-label="Buscar oferta, aluno, caso ou tarefa"
-      >
+      <div className="flex min-w-0 items-baseline gap-2.5 pl-1 text-[13px]">
+        <span className="font-medium whitespace-nowrap text-fg">Continua</span>
+        <span className="truncate text-muted max-sm:hidden">{campaign.intake}<span className="max-md:hidden"> · {PHASE[campaign.phase]}</span></span>
+      </div>
+      <button type="button" onClick={onOpenSearch} className="ml-auto flex h-9 min-w-0 items-center gap-2 rounded-ctl border border-line bg-surface px-2.5 text-[13px] text-muted hover:border-line-strong hover:text-fg md:w-56 max-md:size-9 max-md:justify-center max-md:border-transparent max-md:bg-transparent" aria-label="Buscar oferta, aluno, caso ou tarefa">
         <Search className="size-4 shrink-0" aria-hidden />
-        <span className="flex-1 truncate text-left max-md:hidden">Buscar aluno, oferta ou tarefa</span>
+        <span className="flex-1 text-left max-md:hidden">Buscar</span>
         <span className="max-md:hidden"><Kbd>Ctrl K</Kbd></span>
       </button>
-
-      <Tooltip label={clock.mode === 'fixed_demo' ? 'Relógio fixo da demonstração. Datas futuras são simuladas. Ajuste em Controle da demo.' : 'Relógio em tempo real.'}>
-        <Link to="/demo/controle" className="flex h-8 shrink-0 items-center gap-1.5 rounded-ctl border border-dashed border-line-strong px-2 text-[13px] font-medium text-muted hover:text-fg">
-          <CalendarClock className="size-4" aria-hidden />
-          <span className="max-sm:hidden">{clock.mode === 'fixed_demo' ? 'Cenário simulado em' : 'Agora'}</span>
-          <span className="tabular text-fg">{fmtDateShort(clock.now)} {new Date(clock.now).getFullYear() !== 2026 ? clock.now.slice(0, 4) : ''}</span>
-          <span className="tabular max-md:hidden">{fmtTime(clock.now)}</span>
+      <Tooltip label="Datas e dados sintéticos. Abrir controle da demonstração.">
+        <Link to="/demo/controle" className="flex h-9 shrink-0 items-center gap-1.5 rounded-ctl px-2 text-xs text-muted hover:bg-hover hover:text-fg max-sm:hidden" aria-label="Controle da demo">
+          <CalendarClock className="size-3.5" aria-hidden />
+          <span>Demo</span><span aria-hidden>·</span><span className="tabular">{fmtDateShort(clock.now)}</span>
+          <span className="tabular max-lg:hidden">{clock.now.slice(0, 4)} · {fmtTime(clock.now)}</span>
         </Link>
       </Tooltip>
-
       <Notifications />
-      <Tooltip label="Ajuda, glossário e limites da demonstração">
-        <Button asChild variant="ghost" size="icon-sm" className="max-sm:hidden">
-          <Link to="/ajuda" aria-label="Ajuda e limites da demonstração">
-            <LifeBuoy />
-          </Link>
-        </Button>
-      </Tooltip>
-      <ThemeToggle />
+      <Profile />
     </header>
   )
 }

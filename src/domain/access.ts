@@ -17,20 +17,16 @@ export type RouteKey =
   | 'demo'
 
 const ROUTES: Record<Role, RouteKey[]> = {
-  director: ['visao-geral', 'ofertas', 'alunos', 'propostas', 'aprovacoes', 'ajustes', 'devolucoes', 'resultados', 'configuracoes', 'ajuda', 'demo'],
   manager: ['visao-geral', 'ofertas', 'alunos', 'atendimentos', 'propostas', 'aprovacoes', 'comunicacao', 'ajustes', 'devolucoes', 'resultados', 'configuracoes', 'ajuda', 'demo'],
   consultant: ['atendimentos', 'propostas', 'alunos', 'ofertas', 'ajustes', 'devolucoes', 'resultados', 'ajuda', 'demo'],
   support: ['ajustes', 'ofertas', 'devolucoes', 'resultados', 'ajuda', 'demo'],
-  finance: ['devolucoes', 'visao-geral', 'ofertas', 'ajustes', 'resultados', 'configuracoes', 'ajuda', 'demo'],
   admin: ['configuracoes', 'ofertas', 'ajuda', 'demo'],
 }
 
 export const HOME: Record<Role, string> = {
-  director: '/visao-geral',
   manager: '/visao-geral',
   consultant: '/atendimentos',
   support: '/ajustes',
-  finance: '/devolucoes',
   admin: '/configuracoes',
 }
 
@@ -40,7 +36,6 @@ export function canAccess(role: Role, route: RouteKey): boolean {
 
 export type Action =
   | 'decision.record'
-  | 'decision.prepare'
   | 'economics.view'
   | 'forecast.recalc'
   | 'case.claim'
@@ -50,7 +45,6 @@ export type Action =
   | 'approval.decide'
   | 'task.execute'
   | 'refund.request'
-  | 'refund.process'
   | 'followup.record'
   | 'journey.edit'
   | 'journey.dispatch'
@@ -61,26 +55,24 @@ export type Action =
   | 'conversation.view'
 
 const ACTIONS: Record<Action, Role[]> = {
-  'decision.record': ['director'],
-  'decision.prepare': ['manager'],
-  'economics.view': ['director', 'finance', 'manager'],
-  'forecast.recalc': ['director', 'manager', 'finance'],
+  'decision.record': ['manager'],
+  'economics.view': ['manager'],
+  'forecast.recalc': ['manager'],
   'case.claim': ['consultant'],
   'case.contact': ['consultant', 'manager'],
   'case.transfer': ['manager'],
   'proposal.create': ['consultant', 'manager'],
-  'approval.decide': ['manager', 'director'],
+  'approval.decide': ['manager'],
   'task.execute': ['support'],
   'refund.request': ['consultant', 'manager'],
-  'refund.process': ['finance'],
   'followup.record': ['manager', 'consultant'],
   'journey.edit': ['manager'],
   'journey.dispatch': ['manager'],
-  'campaign.manage': ['manager', 'admin', 'director'],
-  'policy.edit': ['director', 'admin', 'finance'],
+  'campaign.manage': ['manager', 'admin'],
+  'policy.edit': ['manager', 'admin'],
   'data.import': ['manager', 'admin'],
-  'data.exportPersonal': ['manager', 'director'],
-  'conversation.view': ['consultant', 'manager', 'director'],
+  'data.exportPersonal': ['manager'],
+  'conversation.view': ['consultant', 'manager'],
 }
 
 export function can(role: Role, action: Action): boolean {
@@ -88,10 +80,8 @@ export function can(role: Role, action: Action): boolean {
 }
 
 export const ROLE_LABEL: Record<Role, string> = {
-  director: 'Diretoria',
-  manager: 'Gestão / CX',
+  manager: 'Diretoria/Gestão',
   consultant: 'Consultor',
   support: 'Suporte',
-  finance: 'Financeiro',
   admin: 'Admin técnico',
 }

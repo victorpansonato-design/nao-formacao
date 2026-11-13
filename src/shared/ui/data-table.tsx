@@ -137,7 +137,7 @@ export function DataTable<T extends RowData>({
               </tr>
             ))}
           </thead>
-          <tbody>
+          <tbody key={`${pagination.pageIndex}:${sorting.map((s) => `${s.id}${s.desc ? '-' : '+'}`).join()}`} className="motion-fade">
             {rows.map((row) => (
               <tr
                 key={row.id}
@@ -146,7 +146,7 @@ export function DataTable<T extends RowData>({
                 aria-label={onRowClick && rowLabel ? `Abrir ${rowLabel(row.original)}` : undefined}
                 onClick={onRowClick ? () => onRowClick(row.original) : undefined}
                 onKeyDown={onRowClick ? (event) => { if (event.key === 'Enter') onRowClick(row.original) } : undefined}
-                className={cn('border-b border-line last:border-b-0', onRowClick && 'cursor-pointer transition-colors duration-[100ms] hover:bg-hover focus-visible:bg-hover focus-visible:outline-offset-[-2px]')}
+                className={cn('border-b border-line last:border-b-0', onRowClick && 'cursor-pointer transition-colors hover:bg-hover focus-visible:bg-hover focus-visible:outline-offset-[-2px]')}
               >
                 {columns.map((col) => (
                   <td key={col.id} className={cn('px-3 first:pl-4 last:pr-4', dense ? 'h-10 py-1.5' : 'h-12 py-2', col.align === 'right' && 'tabular text-right', col.width, col.hideBelow && HIDE[col.hideBelow])}>
@@ -159,11 +159,12 @@ export function DataTable<T extends RowData>({
         </table>
       </div>
       {data.length === 0 ? empty : null}
+      {footerNote ? <details className="border-t border-line px-4 py-2 text-xs text-muted"><summary className="cursor-pointer">Critérios da lista</summary><p className="pt-2 max-w-[72ch]">{footerNote}</p></details> : null}
       {data.length > 0 ? (
         <div className="flex flex-wrap items-center justify-between gap-2 border-t border-line px-4 py-2 text-[13px] text-muted">
           <p className="tabular" aria-live="polite">
             {int(from)}–{int(to)} de {int(data.length)}
-            {footerNote ? <span className="ml-2">{footerNote}</span> : null}
+
           </p>
           {pageCount > 1 ? (
             <div className="flex items-center gap-1">

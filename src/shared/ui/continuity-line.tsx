@@ -24,8 +24,8 @@ export function continuitySteps(stage: CaseStage, outcome?: string): LineStep[] 
     return [
       { label: 'Origem', detail: 'Turma não ofertada', state: 'done' },
       { label: 'Escolha', detail: 'Pediu devolução', state: 'done' },
-      { label: 'Regularização', detail: closed ? 'Concluída' : 'Suporte e Financeiro', state: closed ? 'done' : 'current' },
-      { label: 'Encerramento', detail: closed ? 'Com comprovante' : 'Aguardando', state: closed ? 'done' : 'todo' },
+      { label: 'Regularização', detail: closed ? 'Concluída' : 'No Suporte', state: closed ? 'done' : 'current' },
+      { label: 'Encerramento', detail: closed ? 'Saída regularizada' : 'Aguardando', state: closed ? 'done' : 'todo' },
     ]
   }
   if (stage === 'closed' && outcome === 'origin_confirmed') {
@@ -52,15 +52,15 @@ export function ContinuityLine({ steps, className }: { steps: LineStep[]; classN
           <div className="flex items-center">
             <span
               className={cn(
-                'grid size-5 shrink-0 place-items-center rounded-full border text-[10px] font-semibold transition-colors duration-[200ms]',
+                'grid size-5 shrink-0 place-items-center rounded-full border text-[10px] font-semibold transition-[color,background-color,border-color,box-shadow] duration-(--duration-base)',
                 step.state === 'done' && 'border-action bg-action text-action-fg',
-                step.state === 'current' && 'border-action bg-surface text-action ring-4 ring-brand-soft',
+                step.state === 'current' && 'border-action bg-surface text-link ring-4 ring-brand-soft',
                 step.state === 'todo' && 'border-line-strong bg-surface text-subtle',
               )}
             >
               {step.state === 'done' ? <Check className="size-3" aria-hidden /> : i + 1}
             </span>
-            {i < steps.length - 1 ? <span className={cn('mx-1.5 h-px flex-1', step.state === 'done' ? 'bg-action' : 'bg-line-strong')} aria-hidden /> : null}
+            {i < steps.length - 1 ? <span className={cn('mx-1.5 h-px flex-1 transition-colors duration-(--duration-base)', step.state === 'done' ? 'bg-action' : 'bg-line-strong')} aria-hidden /> : null}
           </div>
           <div className="min-w-0">
             <p className={cn('truncate text-[13px] font-medium', step.state === 'todo' && 'text-muted')}>{step.label}</p>

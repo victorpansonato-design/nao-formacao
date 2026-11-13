@@ -6,8 +6,8 @@ ROOT=Path(__file__).resolve().parents[1]
 errors=[]
 def check(condition, message):
     if not condition: errors.append(message)
-seed=json.loads((ROOT/'data/seed.json').read_text())
-scenarios=json.loads((ROOT/'data/scenarios.json').read_text())
+seed=json.loads((ROOT/'data/seed.json').read_text(encoding='utf-8'))
+scenarios=json.loads((ROOT/'data/scenarios.json').read_text(encoding='utf-8'))
 for collection in ['students','cases','enrollments','payments','offerings','evidence','snapshots']:
     rows=seed[collection];ids=[x['id'] for x in rows]
     check(len(ids)==len(set(ids)),f'IDs duplicados em {collection}')
@@ -39,7 +39,9 @@ for s in scenarios:
 check(500*30000*30==450000000,'Cenário financeiro incorreto')
 check((.50-.30)*500*30000*30==90000000,'Incremento nominal incorreto')
 for p in ROOT.rglob('*.md'):
-    for target in re.findall(r'!?\[[^\]]*\]\(([^\s)]+)(?:\s+[^)]*)?\)',p.read_text()):
+    if any(part in {'node_modules', '.git', 'dist', 'test-results', 'playwright-report'} for part in p.relative_to(ROOT).parts):
+        continue
+    for target in re.findall(r'!?\[[^\]]*\]\(([^\s)]+)(?:\s+[^)]*)?\)',p.read_text(encoding='utf-8')):
         if target.startswith(('http:','https:','mailto:','#','sandbox:')):continue
         local=target.split('#')[0]
         if local:check((p.parent/local).exists(),f'Link local inexistente: {p.relative_to(ROOT)} → {local}')

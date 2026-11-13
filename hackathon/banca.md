@@ -1,5 +1,7 @@
 # Roteiro da banca e narrativa
 
+> Nota de 12/11/2026: o produto passou a ter um perfil único Diretoria/Gestão (sem Financeiro), que só marca cada turma como Ofertado Sim/Não e acompanha tudo no Painel; devoluções são apenas registradas e encaminhadas ao financeiro em outro sistema; o catálogo de cursos é o real do site. Onde este roteiro fala em "diretoria", "decisão" ou "alçada", leia conforme `docs/00-decisoes.md` (seção de 12/11/2026).
+
 ## Tese de abertura
 
 “Quando uma turma não forma, não perdemos só uma matrícula. Recebemos a responsabilidade de ajudar alguém que já confiou no Anchieta a decidir o próximo passo. Hoje fazemos isso tarde e com informação espalhada. O Continua organiza essa decisão antes, durante e depois do contato.”

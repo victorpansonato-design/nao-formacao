@@ -3,57 +3,80 @@
 @import '@fontsource-variable/inter';
 
 @custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
+/* Tela que cabe inteira na área de conteúdo, sem rolagem (painel da gestão). Abaixo disso, empilha e rola. */
+@custom-variant fit (@media (min-width: 1280px) and (min-height: 660px));
 
 /* Tokens complementares aos de design/tokens.css (mesma fonte de verdade para cor). */
 :root {
-  --surface-sunken: #eef3f9;
-  --surface-hover: #f1f5fa;
-  --border-strong: #c3d0e0;
-  --text-subtle: #6b7c93;
-  --brand-soft: #e6effa;
-  --brand-soft-text: #0a4788;
-  --success-soft: #e3f4ea;
-  --warning-soft: #fbf0d4;
-  --danger-soft: #fce8ea;
-  --neutral-soft: #e9eef5;
-  --nav-text: #ffffff;
-  --nav-text-muted: #c3d2f3;
-  --nav-hover: rgb(255 255 255 / 9%);
-  --nav-active: rgb(255 255 255 / 16%);
-  --nav-border: rgb(255 255 255 / 14%);
-  --bubble-in: #eef3f9;
-  --bubble-out: #dfeafa;
-  --overlay: rgb(12 22 38 / 45%);
-  --chart-observed: #0051a0;
-  --chart-scenario: #5b8fd0;
-  --chart-band: rgb(0 81 160 / 12%);
-  --chart-reference: #815200;
-  --chart-grid: #e3eaf3;
-  --shadow-pop: 0 1px 2px rgb(20 38 63 / 6%), 0 8px 24px rgb(20 38 63 / 10%);
+  --surface-sunken: #f2f3f6;
+  --surface-hover: #eef0f3;
+  --border-strong: #d5d8dd;
+  --text-subtle: #6b707a;
+  --brand-soft: #e9f0ff;
+  --brand-soft-text: #133a9e;
+  --success-soft: #def8e4;
+  --warning-soft: #fff3d6;
+  --danger-soft: #ffede9;
+  --neutral-soft: #f2f3f6;
+  /* Navegação sobre o fundo: hover e ativo são a mesma pílula branca da referência. */
+  --nav-text: #0b0f18;
+  --nav-text-muted: #4c515a;
+  --nav-hover: #ffffff;
+  --nav-active: #ffffff;
+  --nav-border: transparent;
+  --bubble-in: #f2f3f6;
+  --bubble-out: #e9f0ff;
+  --overlay: rgb(11 15 24 / 40%);
+  --chart-observed: #133a9e;
+  --chart-scenario: #8ea6e0;
+  --chart-band: rgb(19 58 158 / 8%);
+  --chart-reference: #9a5a00;
+  --chart-grid: #e1e3e6;
+  /* Série categórica (ordem fixa, nunca reciclada). Validada com o verificador da skill dataviz sobre
+     #ffffff: ΔE adjacente (daltonismo) ≥ 9,1 e visão normal ≥ 20,8. Três tons ficam abaixo de 3:1 no claro,
+     por isso todo gráfico que a usa mostra legenda com rótulo e valor. `--chart-cat-rest` é o "outros" neutro. */
+  --chart-cat-1: #3875aa;
+  --chart-cat-2: #1baf7a;
+  --chart-cat-3: #eda100;
+  --chart-cat-4: #6250d6;
+  --chart-cat-5: #e87ba4;
+  --chart-cat-6: #008300;
+  --chart-cat-rest: #9aa3ad;
+  --shadow-pop: 0 1px 2px rgb(11 15 24 / 5%), 0 8px 24px rgb(11 15 24 / 9%);
 }
 [data-theme='dark'] {
-  --surface-sunken: #0f1b2e;
-  --surface-hover: #1a2c47;
-  --border-strong: #3d5475;
-  --text-subtle: #8fa2bd;
-  --brand-soft: #17335a;
-  --brand-soft-text: #b5d5ff;
-  --success-soft: #133a2b;
-  --warning-soft: #3f3212;
-  --danger-soft: #47202a;
-  --neutral-soft: #1d2f4a;
-  --nav-text: #edf3fc;
-  --nav-text-muted: #a9bde6;
-  --bubble-in: #192b45;
-  --bubble-out: #1b3d6e;
-  --overlay: rgb(3 8 16 / 62%);
-  --chart-observed: #80b8ff;
-  --chart-scenario: #5f93d6;
-  --chart-band: rgb(128 184 255 / 14%);
-  --chart-reference: #f2cb71;
-  --chart-grid: #24364f;
-  --shadow-raised: 0 8px 28px rgb(0 0 0 / 35%);
-  --shadow-pop: 0 1px 2px rgb(0 0 0 / 30%), 0 10px 30px rgb(0 0 0 / 40%);
+  --surface-sunken: #12161b;
+  --surface-hover: #1a1f26;
+  --border-strong: #2c3239;
+  --text-subtle: #8a8f99;
+  --brand-soft: #141f3d;
+  --brand-soft-text: #b7c8fa;
+  --success-soft: #12291c;
+  --warning-soft: #2e2510;
+  --danger-soft: #361a19;
+  --neutral-soft: #1a1f25;
+  --nav-text: #eef0f5;
+  --nav-text-muted: #a1a6b0;
+  --nav-hover: #14181e;
+  --nav-active: #181c23;
+  --nav-border: transparent;
+  --bubble-in: #1a1f25;
+  --bubble-out: #141f3d;
+  --overlay: rgb(0 0 0 / 60%);
+  --chart-observed: #8aa6f0;
+  --chart-scenario: #5f76b4;
+  --chart-band: rgb(138 166 240 / 10%);
+  --chart-reference: #f3bb13;
+  --chart-grid: #1f242a;
+  /* Mesmos matizes, passos escolhidos para #292d33: ΔE adjacente (daltonismo) ≥ 8,4, visão normal ≥ 17,4. */
+  --chart-cat-1: #4f93d6;
+  --chart-cat-2: #199e70;
+  --chart-cat-3: #c98500;
+  --chart-cat-4: #9085e9;
+  --chart-cat-5: #d55181;
+  --chart-cat-6: #008300;
+  --chart-cat-rest: #7f8a96;
+  --shadow-pop: 0 1px 2px rgb(0 0 0 / 30%), 0 10px 30px rgb(0 0 0 / 50%);
 }
 
 @theme inline {
@@ -67,6 +90,12 @@
   --color-nav-line: var(--nav-border);
   --color-canvas: var(--canvas);
   --color-surface: var(--surface);
+  --color-bar: var(--surface-bar);
+  --color-accent: var(--accent);
+  --color-kpi-success: var(--kpi-success);
+  --color-kpi-danger: var(--kpi-danger);
+  --color-kpi-brand: var(--kpi-brand);
+  --color-kpi-warning: var(--kpi-warning);
   --color-raised: var(--surface-raised);
   --color-sunken: var(--surface-sunken);
   --color-hover: var(--surface-hover);
@@ -76,6 +105,7 @@
   --color-line: var(--border);
   --color-line-strong: var(--border-strong);
   --color-action: var(--action);
+  --color-link: var(--link);
   --color-action-fg: var(--action-text);
   --color-brand-soft: var(--brand-soft);
   --color-brand-soft-fg: var(--brand-soft-text);
@@ -93,9 +123,14 @@
   --radius-ctl: var(--radius-control);
   --radius-pnl: var(--radius-panel);
   --radius-dlg: var(--radius-dialog);
+  --radius-app: var(--radius-shell);
   --shadow-raise: var(--shadow-raised);
   --shadow-popover: var(--shadow-pop);
+  --shadow-app: var(--shadow-shell);
   --ease-out-soft: var(--ease-out);
+  /* Toda utilidade transition-* herda a escala de design/tokens.css. */
+  --default-transition-duration: var(--duration-fast);
+  --default-transition-timing-function: var(--ease-out);
 }
 
 @layer base {
@@ -105,7 +140,6 @@
     line-height: 1.5;
     -webkit-font-smoothing: antialiased;
     font-feature-settings: 'cv11', 'ss01';
-    scrollbar-gutter: stable;
   }
   body {
     margin: 0;
@@ -132,6 +166,40 @@
   button:disabled {
     cursor: not-allowed;
   }
+  /* Nenhum controle troca de estado em um quadro: hover, foco e seleção são contínuos.
+     Itens de menu e de busca ficam de fora: o realce acompanha o teclado sem atraso. */
+  a,
+  button,
+  summary,
+  input,
+  select,
+  textarea,
+  [role='button'],
+  [role='link'],
+  [role='tab'] {
+    transition-property: color, background-color, border-color, box-shadow, opacity, filter, scale;
+    transition-duration: var(--duration-fast);
+    transition-timing-function: var(--ease-out);
+  }
+  /* Expansões nativas (<details>) com altura contínua onde o navegador permite; nos demais, abrem direto. */
+  :root {
+    interpolate-size: allow-keywords;
+  }
+  @supports selector(::details-content) {
+    details::details-content {
+      block-size: 0;
+      overflow: clip;
+      opacity: 0;
+      transition:
+        block-size var(--duration-panel) var(--ease-out),
+        opacity var(--duration-base) var(--ease-out),
+        content-visibility var(--duration-panel) allow-discrete;
+    }
+    details[open]::details-content {
+      block-size: auto;
+      opacity: 1;
+    }
+  }
   h1,
   h2,
   h3,
@@ -148,17 +216,29 @@
   }
 }
 
+/* Linha amarela da referência: assinatura sob o título da página e no cartão de próxima ação.
+   Entra junto com a tela, crescendo da esquerda; não se repete em listas nem marca estado. */
+@utility accent-rule {
+  display: block;
+  height: 2px;
+  width: 48px;
+  border-radius: 9999px;
+  background: var(--accent);
+  transform-origin: left center;
+  animation: rule-in var(--duration-panel) var(--ease-out);
+}
+
 @utility tabular {
   font-variant-numeric: tabular-nums;
 }
 @utility page-title {
-  font-size: 22px;
-  line-height: 30px;
+  font-size: 28px;
+  line-height: 36px;
   font-weight: 600;
-  letter-spacing: -0.015em;
+  letter-spacing: -0.02em;
 }
 @utility section-title {
-  font-size: 15px;
+  font-size: 14px;
   line-height: 22px;
   font-weight: 600;
   letter-spacing: -0.005em;
@@ -170,14 +250,20 @@
   color: var(--text-subtle);
 }
 @utility metric {
-  font-size: 28px;
-  line-height: 34px;
+  font-size: 26px;
+  line-height: 32px;
   font-weight: 600;
   letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums;
 }
 
-/* Troca de tema: preenchimento circular controlado por JS (ver shared/motion/theme-transition.ts) */
+/* Troca de tema: preenchimento circular controlado por JS (ver shared/motion/index.ts).
+   Durante a troca, as transições de cor ficam suspensas para o novo tema surgir já no estado final. */
+[data-theme-switching] *,
+[data-theme-switching] ::before,
+[data-theme-switching] ::after {
+  transition: none !important;
+}
 ::view-transition-old(root),
 ::view-transition-new(root) {
   animation: none;
@@ -209,6 +295,15 @@
   transition-duration: 0.01ms !important;
   scroll-behavior: auto !important;
 }
+/* Entrada escalonada: sem movimento, nenhum item espera a vez. */
+@media (prefers-reduced-motion: reduce) {
+  .motion-stagger > * {
+    animation-delay: 0ms !important;
+  }
+}
+[data-motion='reduced'] .motion-stagger > * {
+  animation-delay: 0ms !important;
+}
 
 @media print {
   [data-print='hide'] {
@@ -216,12 +311,133 @@
   }
 }
 
-/* Presença de overlays (Radix controla data-state; duração curta, até 4 px). */
+/* ---------- Arsenal de movimento em CSS (regras em design/motion.md) ----------
+   Só opacity/transform/scale. Posicionamento do Tailwind usa a propriedade `translate`,
+   então os keyframes usam `scale`/`transform` sem disputar o centro do elemento. */
 @keyframes fade-in { from { opacity: 0; } }
 @keyframes fade-out { to { opacity: 0; } }
-@keyframes pop-in { from { opacity: 0; transform: translateY(-4px); } }
-@keyframes dialog-in { from { opacity: 0; transform: translate(-50%, calc(-50% + 6px)) scale(0.985); } }
-@keyframes sheet-right-in { from { transform: translateX(24px); opacity: 0; } }
-@keyframes sheet-right-out { to { transform: translateX(24px); opacity: 0; } }
-@keyframes sheet-left-in { from { transform: translateX(-24px); opacity: 0; } }
-@keyframes sheet-left-out { to { transform: translateX(-24px); opacity: 0; } }
+@keyframes rise-in { from { opacity: 0; transform: translateY(6px); } }
+@keyframes pop-in { from { opacity: 0; scale: 0.96; } }
+@keyframes pop-out { to { opacity: 0; scale: 0.97; } }
+@keyframes sheet-right-in { from { transform: translateX(100%); } }
+@keyframes sheet-right-out { to { transform: translateX(100%); } }
+@keyframes sheet-left-in { from { transform: translateX(-100%); } }
+@keyframes sheet-left-out { to { transform: translateX(-100%); } }
+@keyframes rule-in { from { scale: 0.2 1; opacity: 0; } }
+@keyframes meter-in { from { transform: translateX(-100%); } }
+/* Rosca: a máscara tem pathLength=100; a varredura descobre o anel a partir do topo, em sentido horário. */
+@keyframes donut-sweep { from { stroke-dashoffset: 100; } }
+
+@layer components {
+  /* Conteúdo que passa a existir na tela: rota, painel de aba, resultado de uma ação. */
+  .motion-enter {
+    animation: rise-in var(--duration-base) var(--ease-out);
+  }
+  /* Igual, sem deslocamento: avisos e blocos dentro de algo que já entra com .motion-enter. */
+  .motion-fade {
+    animation: fade-in var(--duration-base) var(--ease-out);
+  }
+
+  /* Fundo de diálogo e gaveta. */
+  .motion-overlay[data-state='open'] {
+    animation: fade-in var(--duration-base) var(--ease-out);
+  }
+  .motion-overlay[data-state='closed'] {
+    animation: fade-out var(--duration-fast) var(--ease-out);
+  }
+
+  /* Popover, menu e tooltip: nascem do gatilho (origem informada pelo Radix) e voltam para ele. */
+  .motion-pop {
+    transform-origin: var(--radix-popover-content-transform-origin, var(--radix-dropdown-menu-content-transform-origin, var(--radix-tooltip-content-transform-origin, center)));
+  }
+  .motion-pop[data-state='open'],
+  .motion-pop[data-state='delayed-open'] {
+    animation: pop-in var(--duration-base) var(--ease-out);
+  }
+  .motion-pop[data-state='closed'] {
+    animation: pop-out var(--duration-fast) var(--ease-out);
+  }
+
+  /* Diálogo: não tem gatilho físico, cresce do próprio centro. */
+  .motion-dialog[data-state='open'] {
+    animation: pop-in var(--duration-base) var(--ease-out);
+  }
+  .motion-dialog[data-state='closed'] {
+    animation: pop-out var(--duration-fast) var(--ease-out);
+  }
+
+  /* Gaveta: percorre a própria largura a partir da borda. */
+  .motion-sheet-right[data-state='open'] {
+    animation: sheet-right-in var(--duration-drawer) var(--ease-drawer);
+  }
+  .motion-sheet-right[data-state='closed'] {
+    animation: sheet-right-out var(--duration-panel) var(--ease-drawer);
+  }
+  .motion-sheet-left[data-state='open'] {
+    animation: sheet-left-in var(--duration-drawer) var(--ease-drawer);
+  }
+  .motion-sheet-left[data-state='closed'] {
+    animation: sheet-left-out var(--duration-panel) var(--ease-drawer);
+  }
+
+  /* Barra de proporção: o valor vai em style={{ transform: translateX(-(100 - n)%) }}. */
+  .motion-meter {
+    width: 100%;
+    animation: meter-in var(--duration-data) var(--ease-out);
+    transition: transform var(--duration-data) var(--ease-out);
+  }
+
+  /* Gráfico de rosca (shared/motion Donut): varredura na entrada; depois, cada fatia desliza até o novo valor. */
+  .motion-donut-sweep {
+    animation: donut-sweep var(--duration-data-intro) var(--ease-in-out);
+  }
+  .motion-donut-segment {
+    transition:
+      stroke-dasharray var(--duration-data) var(--ease-out),
+      stroke-dashoffset var(--duration-data) var(--ease-out),
+      opacity var(--duration-fast) var(--ease-out);
+  }
+
+  /* Lista curta (até 8 itens) que entra junto com um painel de dados: só opacidade, um item após o outro.
+     Não usar em resposta a clique nem em tabela; o atraso é fixo por posição. */
+  .motion-stagger > * {
+    animation: fade-in var(--duration-panel) var(--ease-out) backwards;
+  }
+  .motion-stagger > :nth-child(2) { animation-delay: calc(var(--stagger-step) * 1); }
+  .motion-stagger > :nth-child(3) { animation-delay: calc(var(--stagger-step) * 2); }
+  .motion-stagger > :nth-child(4) { animation-delay: calc(var(--stagger-step) * 3); }
+  .motion-stagger > :nth-child(5) { animation-delay: calc(var(--stagger-step) * 4); }
+  .motion-stagger > :nth-child(6) { animation-delay: calc(var(--stagger-step) * 5); }
+  .motion-stagger > :nth-child(7) { animation-delay: calc(var(--stagger-step) * 6); }
+  .motion-stagger > :nth-child(n + 8) { animation-delay: calc(var(--stagger-step) * 7); }
+
+  /* Navegação que é o fundo do aplicativo (Shell/Sidebar). Recolher estreita a coluna até o trilho de ícones.
+     Exceção declarada à regra 1 de design/motion.md: a largura anima porque o painel do conteúdo precisa
+     ocupar o espaço liberado; é um único elemento, em resposta direta a um clique, em 200 ms. */
+  .app-sidebar {
+    width: var(--sidebar-width);
+    transition: width var(--duration-base) var(--ease-in-out);
+  }
+  .app-sidebar[data-collapsed] {
+    width: var(--sidebar-rail);
+  }
+  /* Rótulos somem antes de serem cortados e voltam depois que há espaço. */
+  .app-sidebar .nav-label {
+    transition: opacity var(--duration-fast) var(--ease-out) 60ms;
+  }
+  .app-sidebar[data-collapsed] .nav-label {
+    opacity: 0;
+    transition-delay: 0ms;
+  }
+  /* A marca (176 px, alinhada ao ícone dos itens) encolhe para 40 px, centrada no trilho, sem trocar de imagem. */
+  .app-sidebar .nav-logo {
+    transform-origin: left center;
+    transition:
+      scale var(--duration-base) var(--ease-in-out),
+      translate var(--duration-base) var(--ease-in-out);
+  }
+  .app-sidebar[data-collapsed] .nav-logo {
+    scale: 0.227;
+    translate: -12px 0;
+  }
+}

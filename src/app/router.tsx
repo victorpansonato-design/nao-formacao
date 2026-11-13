@@ -13,7 +13,7 @@ const page = (key: RouteKey, Component: Page) => (
 )
 
 // Telas carregadas por rota: gráficos não entram no pacote do atendimento.
-const Overview = lazy(() => import('@/features/overview/OverviewPage'))
+const Dashboard = lazy(() => import('@/features/dashboard/DashboardPage'))
 const Offerings = lazy(() => import('@/features/offerings/OfferingsPage'))
 const OfferingDetail = lazy(() => import('@/features/offerings/OfferingDetailPage'))
 const Students = lazy(() => import('@/features/students/StudentsPage'))
@@ -40,7 +40,7 @@ export const router = createBrowserRouter([
     errorElement: <RouteError />,
     children: [
       { index: true, element: <HomeRedirect /> },
-      { path: 'visao-geral', element: page('visao-geral', Overview) },
+      { path: 'visao-geral', element: page('visao-geral', Dashboard) },
       { path: 'ofertas', element: page('ofertas', Offerings) },
       { path: 'ofertas/:id', element: page('ofertas', OfferingDetail) },
       { path: 'alunos', element: page('alunos', Students) },

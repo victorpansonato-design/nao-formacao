@@ -1,5 +1,7 @@
 # Previsão: três camadas de evidência
 
+> Revisão de 12/11/2026: a projeção e a economia continuam como **apoio** à Diretoria/Gestão, no detalhe de cada turma. Elas não alimentam um processo formal de decisão: o sistema só registra Ofertado Sim/Não (`02-processo.md`). A tendência nunca muda esse cadastro.
+
 ## 1. Projeção de demanda
 
 Pergunta: **quantas matrículas válidas esta oferta deverá ter até a data de decisão?** Prever contagem e faixa, não a intenção subjetiva do CEO.
@@ -16,15 +18,15 @@ Pergunta: **a demanda projetada atende a uma condição econômica configurada?*
 
 Sem custo informado, mostrar “Análise econômica indisponível” e contagem/ritmo; não classificar rentabilidade só pelo número de alunos. Grade, laboratório, professores compartilhados, capacidade de sala e encontros semipresenciais precisam entrar na aprovação do cenário.
 
-## 3. Decisão institucional
+## 3. Cadastro Ofertado
 
-Pergunta: **o que a diretoria decidiu ofertar?** Campo formal independente. Uma turma pode ser economicamente deficitária e ser confirmada por investimento estratégico. Registrar déficit previsto, verba autorizada, justificativa, vigência e reavaliação.
+Pergunta: **a Diretoria/Gestão marcou esta turma como ofertada?** Campo independente, binário (Sim/Não), por curso + modalidade + turno. O sistema não registra o motivo, a análise, o déficit nem a verba de quem decidiu; isso acontece fora dele. Uma turma deficitária pode continuar ofertada sem nenhum registro adicional.
 
 Histórico de “formou/não formou” incorpora decisões estratégicas e condições antigas. Usá-lo sozinho como rótulo aprende o comportamento decisório do passado, não a sustentabilidade real. No futuro, eventual probabilidade de decisão precisa ser apresentada como tal e validada separadamente da demanda.
 
 ## UX do radar
 
-Tabela: oferta; atuais; novos/cancelados em 7 dias; projeção base e faixa; referência econômica; diferença; qualidade dos dados; decisão; atualização. Gráfico detalhado com linha observada sólida, cenário futuro tracejado, área de faixa e marco da decisão. Clicar numa linha abre painel com dados de origem e parâmetros.
+Tabela: oferta; atuais; novos/cancelados em 7 dias; projeção base e faixa; referência econômica; diferença; qualidade dos dados; Ofertado; atualização. Gráfico detalhado com linha observada sólida, cenário futuro tracejado, área de faixa e marco da decisão. Clicar numa linha abre painel com dados de origem e parâmetros.
 
 Rótulo recomendado no MVP: “Abaixo da referência no cenário base”. Não usar “82% de chance de não formar” em regra heurística. A aba “Como calculamos” mostra fórmula, janela, data, limitações e parâmetros alterados.
 
@@ -42,7 +44,7 @@ Rótulo recomendado no MVP: “Abaixo da referência no cenário base”. Não u
 
 ## Validação futura com dados reais
 
-Separar treino e teste por campanhas/entradas inteiras em ordem temporal. Snapshots do mesmo curso/entrada ficam juntos; nunca distribuir linhas quase idênticas de uma curva entre treino e teste. Avaliar horizontes D-60, D-45, D-30, D-15 relativos à decisão. Todas as variáveis precisam existir na data simulada, sem vazamento de resultado final, decisão ou verba posterior.
+Separar treino e teste por campanhas/entradas inteiras em ordem temporal. Snapshots do mesmo curso/entrada ficam juntos; nunca distribuir linhas quase idênticas de uma curva entre treino e teste. Avaliar horizontes D-60, D-45, D-30, D-15 relativos à decisão. Todas as variáveis precisam existir na data simulada, sem vazamento de resultado final ou cadastro posterior.
 
 Métricas: MAE por oferta, erro por modalidade/polo, viés, cobertura e largura das faixas validadas. Comparar com previsão ingênua/ritmo e julgamento atual registrado na mesma data. Se houver classificação probabilística futura: Brier, log loss e curva de calibração; acurácia isolada não basta. Mostrar tamanho do conjunto de teste e cursos sem evidência.
 

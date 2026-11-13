@@ -1,26 +1,51 @@
 import { X } from 'lucide-react'
 import { Dialog as D, DropdownMenu as M, Popover as P, Tooltip as T } from 'radix-ui'
-import type { ComponentProps, ReactNode } from 'react'
+import { useRef, type ComponentProps, type ReactNode } from 'react'
 import { cn } from '@/shared/lib/cn'
 import { Button } from './button'
 
 /**
  * Primitivas acessíveis no padrão shadcn/ui sobre Radix: foco preso, Esc, título obrigatório
- * e devolução do foco ao fechar. Animação por CSS (opacidade + até 4 px), curta.
+ * e devolução do foco ao fechar. Presença por CSS (classes .motion-* de app/styles.css):
+ * entrada e saída animadas, popovers com origem no gatilho. Ver design/motion.md.
  */
 
-const overlay = 'fixed inset-0 z-50 bg-overlay data-[state=open]:animate-[fade-in_180ms_ease-out] data-[state=closed]:animate-[fade-out_140ms_ease-in]'
+const overlay = 'motion-overlay fixed inset-0 z-50 bg-overlay'
 
-export function Dialog({ open, onOpenChange, title, description, children, footer, size = 'md' }: { open: boolean; onOpenChange: (open: boolean) => void; title: string; description?: ReactNode; children?: ReactNode; footer?: ReactNode; size?: 'sm' | 'md' | 'lg' | 'xl' }) {
+/**
+ * Devolve o foco a quem abriu. Os diálogos daqui são controlados (sem Dialog.Trigger), e o Radix,
+ * sem gatilho registrado, deixaria o foco no <body> ao fechar.
+ */
+function useReturnFocus() {
+  const opener = useRef<HTMLElement | null>(null)
+  return {
+    onOpenAutoFocus: () => {
+      opener.current = document.activeElement instanceof HTMLElement && document.activeElement !== document.body ? document.activeElement : null
+    },
+    onCloseAutoFocus: (event: Event) => {
+      const el = opener.current
+      opener.current = null
+      if (!el?.isConnected) return
+      event.preventDefault()
+      el.focus({ preventScroll: true })
+    },
+  }
+}
+
+export function Dialog({ open, onOpenChange, title, description, children, footer, size = 'md' }: { open: boolean; onOpenChange: (open: boolean) => void; title: string; description?: ReactNode; children?: ReactNode; footer?: ReactNode; size?: 'sm' | 'md' | 'lg' | 'xl' | 'full' }) {
+  const returnFocus = useReturnFocus()
   return (
     <D.Root open={open} onOpenChange={onOpenChange}>
       <D.Portal>
         <D.Overlay className={overlay} />
         <D.Content
+          {...returnFocus}
           className={cn(
-            'fixed top-1/2 left-1/2 z-50 flex max-h-[min(88dvh,760px)] w-[calc(100vw-24px)] -translate-x-1/2 -translate-y-1/2 flex-col rounded-dlg border border-line bg-raised shadow-popover outline-none',
-            'data-[state=open]:animate-[dialog-in_220ms_var(--ease-out)] data-[state=closed]:animate-[fade-out_140ms_ease-in]',
-            { sm: 'max-w-[420px]', md: 'max-w-[540px]', lg: 'max-w-[720px]', xl: 'max-w-[960px]' }[size],
+            'fixed top-1/2 left-1/2 z-50 flex -translate-x-1/2 -translate-y-1/2 flex-col rounded-dlg border border-line bg-raised shadow-popover outline-none',
+            'motion-dialog',
+            // "full": pop-up de trabalho que ocupa quase a tela inteira (catálogo), com altura fixa para a lista rolar por dentro.
+            size === 'full' ? 'h-[92dvh] w-[min(96vw,1480px)]' : 'max-h-[min(88dvh,760px)] w-[calc(100vw-24px)]',
+            { sm: 'max-w-[420px]', md: 'max-w-[540px]', lg: 'max-w-[720px]', xl: 'max-w-[960px]', full: '' }[size],
           )}
         >
           <header className="flex items-start justify-between gap-4 px-5 pt-5 pb-3">
@@ -44,16 +69,18 @@ export function Dialog({ open, onOpenChange, title, description, children, foote
 
 /** Gaveta lateral (contexto em 1280 px, navegação em mobile). */
 export function Sheet({ open, onOpenChange, title, children, side = 'right', className }: { open: boolean; onOpenChange: (open: boolean) => void; title: string; children: ReactNode; side?: 'left' | 'right'; className?: string }) {
+  const returnFocus = useReturnFocus()
   return (
     <D.Root open={open} onOpenChange={onOpenChange}>
       <D.Portal>
         <D.Overlay className={overlay} />
         <D.Content
+          {...returnFocus}
           className={cn(
-            'fixed inset-y-0 z-50 flex w-[min(92vw,380px)] flex-col bg-raised shadow-popover outline-none',
+            'fixed inset-y-0 z-50 flex w-[min(92vw,380px)] flex-col overscroll-contain bg-raised shadow-popover outline-none',
             side === 'right'
-              ? 'right-0 border-l border-line data-[state=open]:animate-[sheet-right-in_280ms_var(--ease-out)] data-[state=closed]:animate-[sheet-right-out_200ms_ease-in]'
-              : 'left-0 border-r border-line data-[state=open]:animate-[sheet-left-in_280ms_var(--ease-out)] data-[state=closed]:animate-[sheet-left-out_200ms_ease-in]',
+              ? 'motion-sheet-right right-0 border-l border-line'
+              : 'motion-sheet-left left-0 border-r border-line',
             className,
           )}
         >
@@ -75,7 +102,7 @@ export function Sheet({ open, onOpenChange, title, children, side = 'right', cla
 
 /* ---------- Menu ---------- */
 
-const pop = 'z-50 min-w-[200px] rounded-pnl border border-line bg-raised p-1 shadow-popover outline-none data-[state=open]:animate-[pop-in_160ms_var(--ease-out)]'
+const pop = 'motion-pop z-50 min-w-[200px] rounded-pnl border border-line bg-raised p-1 shadow-popover outline-none'
 
 export function Menu({ trigger, children, align = 'end' }: { trigger: ReactNode; children: ReactNode; align?: 'start' | 'center' | 'end' }) {
   return (
@@ -124,12 +151,13 @@ export function Popover({ trigger, children, align = 'start', className, open, o
 
 export const TooltipProvider = T.Provider
 
-export function Tooltip({ label, children, side = 'bottom' }: { label: ReactNode; children: ReactNode; side?: 'top' | 'bottom' | 'left' | 'right' }) {
+/** `disabled` mantém o gatilho montado (sem remontar o filho) e apenas impede a dica de abrir. */
+export function Tooltip({ label, children, side = 'bottom', disabled }: { label: ReactNode; children: ReactNode; side?: 'top' | 'bottom' | 'left' | 'right'; disabled?: boolean }) {
   return (
-    <T.Root>
+    <T.Root open={disabled ? false : undefined}>
       <T.Trigger asChild>{children}</T.Trigger>
       <T.Portal>
-        <T.Content side={side} sideOffset={6} className="z-[60] max-w-[260px] rounded-md bg-fg px-2 py-1 text-xs text-surface shadow-popover data-[state=delayed-open]:animate-[pop-in_140ms_ease-out]">
+        <T.Content side={side} sideOffset={6} className="motion-pop z-[60] max-w-[260px] rounded-md bg-fg px-2 py-1 text-xs text-surface shadow-popover">
           {label}
         </T.Content>
       </T.Portal>

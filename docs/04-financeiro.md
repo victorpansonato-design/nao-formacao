@@ -49,19 +49,19 @@ Se utilizar desconto financeiro: `VP = soma_mes[fluxo_mes / (1 + taxa_mensal)^me
 | Contribuição projetada | Receita esperada menos custos configurados |
 | Receita recebida | Somente pagamentos conciliados; indisponível no MVP |
 | Investimento em concessões | Diferença por parcela em todo o prazo da concessão |
-| Valor a restituir | Saldo conciliado elegível à restituição |
-| Devolução paga | Somente após confirmação e comprovante |
+| Valor encaminhado ao financeiro | Saldo estimado no pedido de devolução registrado aqui; a restituição real acontece no outro sistema |
 
 Não chamar restituição não realizada de “economia”. Troca aceita não apaga uma obrigação financeira nem transforma valor pago em nova receita. Crédito transferido entre cursos é movimentação do mesmo valor.
 
-## Simulação de devoluções
+## Devoluções: só o registro
 
-Contrato com sistema de devoluções: `caseId`, `studentId`, `originalPaymentIds`, `requestedAmountCents`, `reason: course_not_formed`, `requesterId`, `academicTaskId`, `idempotencyKey`, `createdAt`. Produção adaptará ao contrato real do sistema existente.
+Revisão de 12/11/2026, pela dona do produto: o sistema de devoluções é outro, e o financeiro atua nele. O Continua **não** confere saldo, não simula pagamento e não emite comprovante. Não há perfil Financeiro.
 
-Trilha: Solicitação → Verificação → Aguardando pagamento → Pagamento realizado. O sistema deve gerar número `DEV-DEMO-...`, impedir duplicidade por pagamento e mostrar o saldo: `pagamentos conciliados - créditos aproveitados - restituições anteriores`. Exigir valor positivo e limitar ao saldo, salvo ajuste autorizado documentado.
+O que existe aqui:
 
-Consultor solicita e acompanha. Suporte registra regularização. Financeiro verifica, devolve pendência, aprova andamento e simula pagamento com comprovante claramente marcado. Dados bancários reais não entram na demonstração; usar identificador sintético em vez de CPF/PIX.
+- Consultor responsável ou Diretoria/Gestão registram o pedido do aluno (`requestRefund`). O pedido explícito segue direto, sem exigir negociação. Propostas abertas do caso são canceladas; um aceite ainda não executado também.
+- O pedido tem status único **Encaminhada ao financeiro** e mostra o valor estimado com base nos pagamentos sintéticos. Um segundo pedido para o mesmo caso é bloqueado e aponta o existente.
+- É criada a tarefa de **regularização** no Suporte. Quando o Suporte conclui, o caso de saída encerra (`refund`, ou `regularization_only` se não houver valor).
+- A lista de Devoluções é de leitura para todos que a veem; consultores veem os pedidos de todos os alunos (decisão de implementação, pendente de confirmação).
 
-Uma solicitação pode ser encerrada por duplicidade ou indevida, com motivo e vínculo correto, sem indicar pagamento. Ao marcar pagamento, bloquear novo clique e gerar evento único. Comprovante demonstrativo pode ser TXT com marca visível “SEM VALIDADE FINANCEIRA”. Não produzir comprovante bancário visualmente autêntico.
-
-Escopo atual: painel local e eventos internos. Integração real com devoluções é futura. O link público de acompanhamento pode ser simulado em rota de demonstração, com dados mínimos e acesso explicitamente fictício.
+Contrato futuro com o sistema de devoluções: `caseId`, `studentId`, `originalPaymentIds`, `requestedAmountCents`, `reason: course_not_formed`, `requesterId`, `academicTaskId`, `idempotencyKey`, `createdAt`. Produção adaptará ao contrato real do sistema existente. Dados bancários reais não entram na demonstração.

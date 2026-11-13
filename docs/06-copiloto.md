@@ -8,9 +8,21 @@ A literatura consultada conecta recuperação de serviço à qualidade do tratam
 
 ## Interface do copiloto
 
-Painel ao lado da conversa, com quatro blocos curtos: **O que sabemos**, **O que confirmar**, **Sugestão agora**, **Próximos caminhos**. Cada fato tem origem; cada sugestão pode ser editada e copiada. Consultor escolhe o contexto atual: primeira comunicação, frustração expressa, comparação, preço, rotina, aceite, saída. Não inferir diagnóstico emocional de palavras ou voz.
+Revisão de 13/11/2026: o consultor não escolhe contexto nem preenche formulários durante a conversa. O copiloto (ícone de robô, ao lado da conversa) conduz ciclos curtos:
 
-“Simular resposta do aluno” oferece cenários explicitamente hipotéticos. Não afirmar que o aluno vai responder de determinada maneira. “Por que sugeriu isso?” abre fontes e política relevante. “Gerar novamente” altera a sugestão com os fatos atualizados; não muda fatos do catálogo.
+1. **Abertura pronta.** A primeira mensagem já aparece no campo de envio. "Copiar e registrar envio" copia o texto para colar no WhatsApp e registra o envio no histórico. Nada sai do navegador.
+2. **Como o aluno respondeu?** Três respostas prováveis à pergunta que acabou de ser enviada, derivadas do estado do caso (ex.: "Quer ver alternativas", "Pediu a devolução", "Reclamou da mudança"), e uma quarta opção: **colar ou escrever** a mensagem do aluno. A escolha é registrada como resumo do consultor, em terceira pessoa, não como citação.
+3. **Leitura e próxima mensagem.** O copiloto lê o assunto declarado e os dados objetivos (curso citado, turnos, valor) e mostra o que vai salvar, com caixa de seleção, antes de registrar. A resposta seguinte entra no campo de envio; "Outra versão" troca a formulação e "Voltar à sugestão" desfaz a edição.
+4. **Ação sugerida.** Conforme o assunto: montar proposta, registrar pedido de devolução, registrar aceite (com a mensagem como evidência), agendar retorno, registrar manifestação. Na espera, "Sem resposta: retornar amanhã" e "Próximo aluno da fila".
+
+Regras do mecanismo (`src/domain/assistant.ts`):
+
+- A próxima pergunta é a primeira confirmação que falta na opção principal (interesse, rotina, orçamento). Uma pergunta por vez. Quando nada falta, oferece a proposta.
+- O assunto vem do que a mensagem diz ("quero reembolso", "achei caro"), nunca de inferência emocional, perfil ou persuasibilidade. O consultor corrige o assunto em "O copiloto entendeu"; a sugestão muda junto.
+- O que a resposta confirma (interesse, turnos, orçamento, não receber promoções) é gravado no mesmo comando do registro (`recordStudentReply`), com a mensagem como fonte.
+- Pedido de devolução sugere a ação direta, sem tentativa de retenção.
+- Ajuste manual de interesses e preferências continua disponível em "Dados do aluno"; todas as alternativas, em "Ver todas as alternativas".
+- "Por que essa sugestão" mostra fatos com fonte, política e limites. Mecanismo local de regras, sem modelo de linguagem.
 
 ## Sequência orientadora
 
@@ -59,9 +71,9 @@ Concessão deve resolver um impedimento concreto. Não usar desconto no primeiro
 | Nível demonstrativo | Exemplo | Quem decide |
 |---|---|---|
 | Informação/apoio | Comparação, visita ou conversa com coordenação | Consultor agenda dentro das disponibilidades |
-| Condição preaprovada | Política vigente cadastrada e aplicada ao caso | Consultor, sem ultrapassar limite |
-| Exceção comercial | Desconto ou manutenção de condição fora do padrão | Gestão comercial, com impacto financeiro |
-| Exceção estratégica | Condição fora do piso ou regra de sustentabilidade | Diretoria/Financeiro conforme política |
+| Condição preaprovada | Desconto até 5% (política vigente) | Consultor, sem ultrapassar limite |
+| Exceção | Desconto acima de 5% e até 20% | Diretoria/Gestão, com impacto calculado |
+| Fora da política | Acima de 20% | Não há política; o sistema bloqueia |
 
 Os limites numéricos da demo são fictícios e aparecem como “Política de demonstração”. Antes do aceite: calcular preço por parcela, prazo, valor após benefício, custo total da concessão, cumulatividade e margem configurada. Aprovador vê justificativa, alternativas e prazo. Sem aprovação, o consultor pode solicitar, mas não prometer.
 

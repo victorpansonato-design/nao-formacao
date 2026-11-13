@@ -1,5 +1,5 @@
 // Captura telas reais da aplicação em execução.
-// Uso: node e2e/shot.mjs <rota-sem-barra-inicial> <arquivo.png> [largura] [altura] [light|dark] [DEMO-USER-*] [anticipation|operation|aftercare|closed]
+// Uso: node e2e/shot.mjs <rota-sem-barra-inicial> <arquivo.png> [largura] [altura] [light|dark] [DEMO-USER-*] [anticipation|operation|progress|aftercare|closed]
 // O preset fica salvo no navegador da captura; informe-o sempre que a tela depender do cenário.
 import { chromium } from '@playwright/test'
 

@@ -86,7 +86,7 @@ const BRANCHES: Record<CopilotContext, CopilotBranch[]> = {
   exit: [
     { studentSays: 'Quero reembolso.', response: 'Certo. Vou registrar a solicitação e te informar o protocolo e as próximas etapas.', avoid: 'Bloquear a saída ou insistir em desconto' },
     { studentSays: 'Não quero mais mensagens.', response: 'Entendido. Vamos respeitar sua preferência e manter apenas o contato necessário para concluir o que você solicitar.', avoid: 'Continuar régua promocional' },
-    { studentSays: 'Quanto tempo demora?', response: 'O prazo depende da conferência do Financeiro. Eu acompanho cada etapa e te aviso quando o status mudar.', avoid: 'Prometer prazo financeiro que não está definido' },
+    { studentSays: 'Quanto tempo demora?', response: 'O prazo depende da conferência do Financeiro, feita em outro sistema. Seu pedido já foi encaminhado e eu te aviso se precisarem de algo.', avoid: 'Prometer prazo financeiro que não está definido' },
   ],
 }
 
@@ -127,7 +127,7 @@ export function suggest(s: DomainState, caseId: Id, context: CopilotContext, var
 
   const facts: CopilotFact[] = []
   if (origin.decision.outcome === 'not_formed' && origin.decision.decidedAt) {
-    facts.push({ text: `A turma de ${originLabel} (${origin.intake}) não será ofertada. Decisão registrada em ${fmtDate(origin.decision.decidedAt)}.`, source: origin.decision.reference ?? 'Registro da diretoria' })
+    facts.push({ text: `A turma de ${originLabel} (${origin.intake}) não será ofertada. Cadastro feito em ${fmtDate(origin.decision.decidedAt)}.`, source: 'Cadastro de ofertas da Diretoria/Gestão' })
   }
   facts.push(balance > 0
     ? { text: `Há ${brl(balance)} pagos e conciliados, a aproveitar como crédito ou restituir.`, source: 'Pagamentos conciliados (demonstração)' }

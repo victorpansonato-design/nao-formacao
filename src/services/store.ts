@@ -15,6 +15,7 @@ import { useSession } from './session'
  */
 
 const STORAGE_KEY = 'continua:domain'
+export const DEFAULT_PRESET: PresetId = 'progress'
 
 interface Health {
   /** Última gravação falhou (cota, modo privado, bloqueio). O trabalho segue em memória. */
@@ -92,7 +93,8 @@ function withNow(domain: DomainState): DomainState {
 export const useDomainStore = create<DomainStore>()(
   persist(
     (set, get) => ({
-      domain: buildPreset('anticipation'),
+      // A demonstração abre na operação: é o cenário em que o painel da Diretoria/Gestão tem o que mostrar.
+      domain: buildPreset(DEFAULT_PRESET),
       dispatch: (name, payload, opts) => {
         const base = withNow(get().domain)
         const ctx = {
@@ -118,7 +120,7 @@ export const useDomainStore = create<DomainStore>()(
       // Migração explícita: versões anteriores do esquema voltam à base de demonstração.
       migrate: () => {
         useHealth.getState().setRecovered(true)
-        return { domain: buildPreset('anticipation') }
+        return { domain: buildPreset(DEFAULT_PRESET) }
       },
       merge: (persisted, current) => {
         if (persisted === undefined || persisted === null) return current

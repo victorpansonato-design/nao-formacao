@@ -162,10 +162,9 @@ export function decideApproval(
   p: { approvalId: Id; decision: 'approved' | 'rejected'; reason: string },
   ctx: Ctx,
 ) {
-  const user = requireRole(s, ctx, ['manager', 'director'], 'decidir exceções comerciais')
+  requireRole(s, ctx, ['manager'], 'decidir exceções comerciais')
   const a = s.approvals.find((x) => x.id === p.approvalId) ?? fail('not_found', 'Solicitação não encontrada.')
   if (a.status !== 'pending') fail('wrong_state', 'Esta solicitação já foi decidida ou perdeu a validade.')
-  if (a.level === 'director' && user.role !== 'director') fail('forbidden', 'Este pedido ultrapassa a alçada da gestão: a decisão cabe à diretoria.')
   const proposal = proposalOf(s, a.proposalId)
   if (proposal.status !== 'pending_approval' || proposal.version !== a.proposalVersion) {
     a.status = 'void'

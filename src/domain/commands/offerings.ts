@@ -1,14 +1,11 @@
 import { fail } from '../errors'
 import { audit, expectVersion, isCampaignOpen, nextId, notify, offeringOf, requireRole, touchCase, type Ctx } from '../helpers'
-import type { DecisionOutcome, DomainState, Id, IsoDate, Proposal } from '../types'
+import type { DecisionOutcome, DomainState, Id, IsoDate, Proposal, RetentionCase } from '../types'
 import { releaseReservation, voidApproval } from './shared'
 
 const OUTCOME_LABEL: Record<DecisionOutcome, string> = {
-  pending: 'Em definição',
-  confirmed: 'Turma confirmada',
-  not_formed: 'Não será ofertada',
-  strategic_confirmed: 'Confirmada por investimento estratégico',
-  suspended: 'Suspensa',
+  confirmed: 'Ofertado',
+  not_formed: 'Não ofertado',
 }
 
 const ACTIVE_STAGES = ['ready', 'in_contact', 'scheduled', 'proposal', 'unreachable'] as const
@@ -20,27 +17,25 @@ export interface DecisionPreview {
   confirmedSameCourse: number
 }
 
-/** O que a decisão vai provocar, para a confirmação em duas etapas. Função pura. */
+/** Caso que entra na fila quando a turma deixa de ser ofertada: monitorado ou liberado antes por "Ofertado". */
+function queueable(c: RetentionCase): boolean {
+  return c.stage === 'preparation' || (c.stage === 'closed' && c.outcome === 'origin_confirmed')
+}
+
+/** O que o cadastro vai provocar, para a confirmação antes de salvar. Função pura. */
 export function previewDecision(s: DomainState, offeringId: Id, outcome: DecisionOutcome): DecisionPreview {
   const o = s.offerings.find((x) => x.id === offeringId)
   const enrollmentIds = new Set(s.enrollments.filter((e) => e.offeringId === offeringId).map((e) => e.id))
   const cases = s.cases.filter((c) => enrollmentIds.has(c.enrollmentId))
-  const confirming = outcome === 'confirmed' || outcome === 'strategic_confirmed'
+  const offering = outcome === 'confirmed'
   return {
-    casesToQueue: outcome === 'not_formed' ? cases.filter((c) => c.stage === 'preparation').length : 0,
-    casesToRelease: confirming
-      ? cases.filter((c) => c.stage === 'preparation' || (ACTIVE_STAGES as readonly string[]).includes(c.stage)).length
-      : 0,
-    proposalsToFreeze: confirming
+    casesToQueue: offering ? 0 : cases.filter(queueable).length,
+    casesToRelease: offering ? cases.filter((c) => (ACTIVE_STAGES as readonly string[]).includes(c.stage)).length : 0,
+    proposalsToFreeze: offering
       ? 0
       : s.proposals.filter((p) => p.destinationId === offeringId && (p.status === 'open' || p.status === 'pending_approval')).length,
     confirmedSameCourse: o
-      ? s.offerings.filter(
-          (x) =>
-            x.id !== o.id &&
-            x.courseName === o.courseName &&
-            (x.decision.outcome === 'confirmed' || x.decision.outcome === 'strategic_confirmed'),
-        ).length
+      ? s.offerings.filter((x) => x.id !== o.id && x.courseName === o.courseName && x.decision.outcome === 'confirmed').length
       : 0,
   }
 }
@@ -60,44 +55,21 @@ function freezeProposal(s: DomainState, ctx: Ctx, p: Proposal, reason: string): 
   audit(s, ctx, { entityType: 'proposal', entityId: p.id, caseId: p.caseId, action: 'proposal.frozen', summary: `Proposta congelada: ${reason}` })
 }
 
-export function recordDecision(
-  s: DomainState,
-  p: {
-    offeringId: Id
-    outcome: DecisionOutcome
-    reason: string
-    reference: string
-    strategicBudgetCents?: number
-    validUntil?: IsoDate
-    expectedVersion?: number
-  },
-  ctx: Ctx,
-) {
-  requireRole(s, ctx, ['director'], 'registrar a decisão de uma oferta')
-  if (!isCampaignOpen(s)) fail('campaign_closed', 'A campanha está encerrada. Reabra-a para registrar novas decisões.')
+/**
+ * Cadastro "Ofertado: sim ou não" de uma turma (curso + modalidade + turno), feito pela Diretoria/Gestão.
+ * Não há análise nem aprovação: é um registro binário. "Não ofertado" envia os matriculados à fila dos consultores.
+ */
+export function recordDecision(s: DomainState, p: { offeringId: Id; outcome: DecisionOutcome; expectedVersion?: number }, ctx: Ctx) {
+  requireRole(s, ctx, ['manager'], 'cadastrar se uma turma é ofertada')
+  if (!isCampaignOpen(s)) fail('campaign_closed', 'A campanha está encerrada. Reabra-a para alterar o cadastro de ofertas.')
   const o = offeringOf(s, p.offeringId)
-  expectVersion(o.decision.version, p.expectedVersion, 'A decisão desta oferta')
-  if (p.outcome === 'pending') fail('invalid', 'Escolha uma decisão: confirmar, não ofertar, investimento estratégico ou suspender.')
-  if (o.decision.outcome === p.outcome) fail('duplicate', 'Esta decisão já está registrada para a oferta.')
-  if (!p.reason.trim()) fail('invalid', 'Informe a justificativa da decisão.')
-  if (!p.reference.trim()) fail('invalid', 'Informe a ata ou referência do registro.')
-  if (p.outcome === 'strategic_confirmed' && !(p.strategicBudgetCents && p.strategicBudgetCents > 0)) {
-    fail('invalid', 'Investimento estratégico exige a verba autorizada.')
-  }
+  expectVersion(o.decision.version, p.expectedVersion, 'O cadastro desta turma')
+  if (p.outcome !== 'confirmed' && p.outcome !== 'not_formed') fail('invalid', 'Escolha Ofertado ou Não ofertado.')
+  if (o.decision.outcome === p.outcome) fail('duplicate', 'Este cadastro já está registrado para a turma.')
 
   const before = o.decision.version
-  o.decision = {
-    outcome: p.outcome,
-    version: before + 1,
-    decidedAt: ctx.now,
-    actorId: ctx.actorId,
-    reason: p.reason.trim(),
-    reference: p.reference.trim(),
-    strategicBudgetCents: p.outcome === 'strategic_confirmed' ? p.strategicBudgetCents : undefined,
-    validUntil: p.validUntil,
-  }
+  o.decision = { outcome: p.outcome, version: before + 1, decidedAt: ctx.now, actorId: ctx.actorId }
   s.decisionLog.push({ id: nextId(s, 'DEC'), offeringId: o.id, ...o.decision })
-  delete s.decisionDrafts[o.id]
 
   const enrollmentIds = new Set(s.enrollments.filter((e) => e.offeringId === o.id).map((e) => e.id))
   const cases = s.cases.filter((c) => enrollmentIds.has(c.enrollmentId))
@@ -107,24 +79,34 @@ export function recordDecision(
 
   if (p.outcome === 'not_formed') {
     for (const c of cases) {
-      if (c.stage !== 'preparation') continue
+      if (!queueable(c)) continue
       c.stage = 'ready'
+      c.outcome = undefined
+      // Volta à fila geral: sem responsável nem tentativas herdadas de uma passagem anterior.
+      c.ownerId = null
+      c.lease = null
+      c.attempts = 0
       c.readyAt = ctx.now
       c.nextAction = { kind: 'first_contact' }
       touchCase(c)
       queued += 1
     }
-    if (s.campaign.phase === 'anticipation') s.campaign.phase = 'operation'
-  }
-
-  if (p.outcome === 'confirmed' || p.outcome === 'strategic_confirmed') {
-    // Origem confirmada: retirar o caso de não formação antes de negociar outra oferta.
+    if (queued > 0 && s.campaign.phase === 'anticipation') s.campaign.phase = 'operation'
+    // A turma deixa de ser destino: congelar propostas abertas e liberar reservas.
+    for (const pr of s.proposals) {
+      if (pr.destinationId !== o.id) continue
+      if (pr.status !== 'open' && pr.status !== 'pending_approval') continue
+      freezeProposal(s, ctx, pr, `${o.courseName} ${o.shift} — não ofertado`)
+      frozen += 1
+    }
+    if (frozen > 0) notify(s, ctx, { toRole: 'manager', text: `${frozen} proposta(s) congelada(s): ${o.courseName} ${o.shift} deixou de ser ofertado.`, link: '/propostas' })
+  } else {
+    // Turma volta a ser ofertada: os alunos seguem nela e saem da fila de não formação.
     for (const c of cases) {
-      const active = (ACTIVE_STAGES as readonly string[]).includes(c.stage)
-      if (c.stage !== 'preparation' && !active) continue
+      if (!(ACTIVE_STAGES as readonly string[]).includes(c.stage)) continue
       for (const pr of s.proposals.filter((x) => x.caseId === c.id && (x.status === 'open' || x.status === 'pending_approval'))) {
         pr.status = 'cancelled'
-        pr.closedReason = 'Oferta de origem confirmada'
+        pr.closedReason = 'Turma de origem voltou a ser ofertada'
         pr.version += 1
         releaseReservation(s, pr.id)
         voidApproval(s, pr)
@@ -136,22 +118,13 @@ export function recordDecision(
       touchCase(c)
       released += 1
     }
-  } else {
-    // Destino perde confirmação: congelar propostas abertas e liberar reservas.
-    for (const pr of s.proposals) {
-      if (pr.destinationId !== o.id) continue
-      if (pr.status !== 'open' && pr.status !== 'pending_approval') continue
-      freezeProposal(s, ctx, pr, `${o.courseName} ${o.shift} — ${OUTCOME_LABEL[p.outcome].toLowerCase()}`)
-      frozen += 1
-    }
-    if (frozen > 0) notify(s, ctx, { toRole: 'manager', text: `${frozen} proposta(s) congelada(s) após decisão sobre ${o.courseName} ${o.shift}.`, link: '/propostas' })
   }
 
   audit(s, ctx, {
     entityType: 'offering',
     entityId: o.id,
     action: 'decision.recorded',
-    summary: `Decisão oficial simulada: ${OUTCOME_LABEL[p.outcome]} (${p.reference.trim()})`,
+    summary: `Cadastro de oferta: ${OUTCOME_LABEL[p.outcome]}`,
     beforeVersion: before,
     afterVersion: o.decision.version,
   })
@@ -159,22 +132,12 @@ export function recordDecision(
   return { queued, released, frozen, version: o.decision.version }
 }
 
-export function prepareDecision(s: DomainState, p: { offeringId: Id; outcome: DecisionOutcome; note: string }, ctx: Ctx) {
-  requireRole(s, ctx, ['manager', 'finance'], 'preparar parecer')
-  const o = offeringOf(s, p.offeringId)
-  if (!p.note.trim()) fail('invalid', 'Escreva o parecer que a diretoria vai ler.')
-  s.decisionDrafts[o.id] = { outcome: p.outcome, note: p.note.trim(), actorId: ctx.actorId, at: ctx.now }
-  audit(s, ctx, { entityType: 'offering', entityId: o.id, action: 'decision.prepared', summary: `Parecer preparado: ${OUTCOME_LABEL[p.outcome]}` })
-  notify(s, ctx, { toRole: 'director', text: `Parecer preparado para ${o.courseName} ${o.shift}.`, link: `/ofertas/${o.id}` })
-  return { offeringId: o.id }
-}
-
 export function recalcForecast(
   s: DomainState,
   p: { offeringId: Id; windowDays: number; lowFactor: number; highFactor: number },
   ctx: Ctx,
 ) {
-  requireRole(s, ctx, ['director', 'manager', 'finance'], 'recalcular o cenário')
+  requireRole(s, ctx, ['manager'], 'recalcular o cenário')
   offeringOf(s, p.offeringId)
   if (!Number.isFinite(p.windowDays) || p.windowDays < 7 || p.windowDays > 60) fail('invalid', 'A janela do ritmo deve ficar entre 7 e 60 dias.')
   if (!Number.isFinite(p.lowFactor) || p.lowFactor < 0 || p.lowFactor > 1) fail('invalid', 'O fator do cenário conservador deve ficar entre 0 e 1.')
@@ -185,7 +148,7 @@ export function recalcForecast(
 }
 
 export function resetForecast(s: DomainState, p: { offeringId: Id }, ctx: Ctx) {
-  requireRole(s, ctx, ['director', 'manager', 'finance'], 'recalcular o cenário')
+  requireRole(s, ctx, ['manager'], 'recalcular o cenário')
   delete s.forecastParams[p.offeringId]
   audit(s, ctx, { entityType: 'offering', entityId: p.offeringId, action: 'forecast.reset', summary: 'Cenário voltou às premissas padrão' })
   return { offeringId: p.offeringId }

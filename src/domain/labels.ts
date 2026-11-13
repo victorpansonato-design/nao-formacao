@@ -40,11 +40,8 @@ export const OUTCOME: Record<CaseOutcome, string> = {
 }
 
 export const DECISION: Record<DecisionOutcome, { label: string; tone: Tone }> = {
-  pending: { label: 'Em definição', tone: 'neutral' },
-  confirmed: { label: 'Turma confirmada', tone: 'success' },
-  strategic_confirmed: { label: 'Confirmada · investimento estratégico', tone: 'success' },
-  not_formed: { label: 'Não será ofertada', tone: 'danger' },
-  suspended: { label: 'Suspensa', tone: 'warning' },
+  confirmed: { label: 'Ofertado', tone: 'success' },
+  not_formed: { label: 'Não ofertado', tone: 'danger' },
 }
 
 /** Risco analítico: nunca substitui a decisão. Texto do MVP conforme docs/03-previsao.md. */
@@ -80,16 +77,8 @@ export const TASK_KIND: Record<AcademicTask['kind'], string> = {
 }
 
 export const REFUND: Record<RefundStatus, { label: string; tone: Tone; step: number }> = {
-  requested: { label: 'Solicitada', tone: 'warning', step: 0 },
-  verification: { label: 'Em verificação', tone: 'brand', step: 1 },
-  pending_info: { label: 'Pendência com a Captação', tone: 'danger', step: 1 },
-  awaiting_payment: { label: 'Aguardando pagamento', tone: 'brand', step: 2 },
-  paid: { label: 'Pagamento simulado', tone: 'success', step: 3 },
-  closed_duplicate: { label: 'Encerrada por duplicidade', tone: 'neutral', step: -1 },
-  closed_undue: { label: 'Encerrada como indevida', tone: 'neutral', step: -1 },
+  requested: { label: 'Encaminhada ao financeiro', tone: 'brand', step: 0 },
 }
-
-export const REFUND_STEPS = ['Solicitação', 'Verificação', 'Aguardando pagamento', 'Pagamento realizado']
 
 export const PHASE: Record<CampaignPhase, string> = {
   anticipation: 'Antecipação',
@@ -98,8 +87,19 @@ export const PHASE: Record<CampaignPhase, string> = {
   closed: 'Encerrada',
 }
 
-export const SHIFT: Record<Shift, string> = { diurno: 'Diurno', noturno: 'Noturno', agenda: 'Encontros agendados' }
-export const MODALITY: Record<Modality, string> = { presencial: 'Presencial', semipresencial: 'Semipresencial' }
+export const SHIFT: Record<Shift, string> = { diurno: 'Diurno', noturno: 'Noturno', integral: 'Integral', agenda: 'Encontros agendados', online: 'Online' }
+/** Rótulo curto do turno, para o seletor Sim/Não do catálogo. */
+export const SHIFT_SHORT: Record<Shift, string> = { diurno: 'Diurno', noturno: 'Noturno', integral: 'Integral', agenda: 'Agendado', online: 'Online' }
+export const MODALITY: Record<Modality, string> = {
+  presencial: 'Presencial',
+  presencial_integral: 'Presencial Integral',
+  presencial_intensivo: 'Presencial Intensivo',
+  semipresencial: 'Semipresencial',
+  ead: 'EAD',
+  ead_live: 'EAD Live',
+}
+/** Ordem de exibição das modalidades no catálogo. */
+export const MODALITY_ORDER: Modality[] = ['presencial', 'presencial_integral', 'presencial_intensivo', 'semipresencial', 'ead', 'ead_live']
 
 /** Oferta = curso + modalidade + unidade + turno + entrada. Nunca identificar só pelo nome do curso. */
 export function offeringLabel(o: Pick<Offering, 'courseName' | 'shift'>): string {
@@ -122,7 +122,5 @@ export function nextActionLabel(a: NextAction | null): string {
       return 'Aguardando decisão da exceção'
     case 'await_support':
       return a.note ?? 'Aguardando o Suporte'
-    case 'await_finance':
-      return 'Aguardando o Financeiro'
   }
 }

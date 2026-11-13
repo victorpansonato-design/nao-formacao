@@ -9,7 +9,7 @@ Cada entrega termina com uma fatia utilizável, verificação e checkpoint. Pros
 | 3. Antecipação | `03-previsao`, `04-financeiro` | Radar, detalhe, qualidade e decisão | Projeção distinta da decisão; casos criados uma vez |
 | 4. Atendimento | `05-recomendacoes`, `06-copiloto` | Fila, caso, CRM, composer, perguntas e comparação | Marina recebe opção com evidência; inválidas bloqueadas |
 | 5. Proposta e Suporte | `02-processo`, `04-financeiro` | Política, alçada, aceite, tarefa/checklist e efetivação | Aceite e efetivação têm indicadores diferentes |
-| 6. Devolução | `04-financeiro`, `09-telas` | Solicitação, saldo, trilha, duplicidade e comprovante TXT | Pedido direto concluído sem negociação forçada |
+| 6. Devolução | `04-financeiro`, `09-telas` | Solicitação, saldo, trilha, duplicidade e ~~comprovante TXT~~ (removido em 12/11/2026: só registro) | Pedido direto concluído sem negociação forçada |
 | 7. Comunicação e gestão | `07-comunicacao`, `09-telas` | Régua, prévia, simulação de disparo, aprovações, relatórios | Opt-out e critérios de parada respeitados |
 | 8. Ciclo completo | `02-processo`, `10-dados` | Import/export, follow-up, fechamento e nova campanha | Sem perder histórico nem copiar alunos automaticamente |
 | 9. Acabamento | motion, referências e qualidade | Transições, responsividade, acessibilidade e estados de erro | Sem ações mortas, saltos de layout ou foco perdido |

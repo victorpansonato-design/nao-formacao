@@ -57,7 +57,7 @@ function search(d: DomainState, role: Role, actorId: string, query: string): Hit
   if (canAccess(role, 'devolucoes')) {
     for (const r of d.refunds) {
       const name = students.get(r.studentId)?.displayName ?? ''
-      if (match(r.id, r.caseId, role === 'finance' || role === 'manager' ? name : '')) hits.push({ id: r.id, group: 'Devoluções', icon: Undo2, title: `Devolução ${r.id}`, subtitle: `${name} · ${REFUND[r.status].label}`, to: `/devolucoes/${r.id}` })
+      if (match(r.id, r.caseId, role === 'support' || role === 'manager' ? name : '')) hits.push({ id: r.id, group: 'Devoluções', icon: Undo2, title: `Devolução ${r.id}`, subtitle: `${name} · ${REFUND[r.status].label}`, to: `/devolucoes/${r.id}` })
     }
   }
   return hits.slice(0, 30)
@@ -84,8 +84,8 @@ export function CommandPalette({ open, onOpenChange }: { open: boolean; onOpenCh
   return (
     <D.Root open={open} onOpenChange={onOpenChange}>
       <D.Portal>
-        <D.Overlay className="fixed inset-0 z-50 bg-overlay data-[state=open]:animate-[fade-in_160ms_ease-out]" />
-        <D.Content className="fixed top-[12dvh] left-1/2 z-50 flex max-h-[70dvh] w-[calc(100vw-24px)] max-w-[600px] -translate-x-1/2 flex-col overflow-hidden rounded-dlg border border-line bg-raised shadow-popover outline-none data-[state=open]:animate-[fade-in_160ms_ease-out]">
+        <D.Overlay className="motion-overlay fixed inset-0 z-50 bg-overlay" />
+        <D.Content className="fixed top-[12dvh] left-1/2 z-50 flex max-h-[70dvh] w-[calc(100vw-24px)] max-w-[600px] -translate-x-1/2 flex-col overflow-hidden motion-dialog origin-top rounded-dlg border border-line bg-raised shadow-popover outline-none">
           <D.Title className="sr-only">Busca global</D.Title>
           <D.Description className="sr-only">Busque por oferta, aluno, caso ou tarefa</D.Description>
           <div className="flex h-12 shrink-0 items-center gap-2.5 border-b border-line px-4">

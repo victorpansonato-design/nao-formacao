@@ -2,7 +2,7 @@
 
 ## Identificadores e valores
 
-IDs imutáveis separados de nomes e códigos externos. `offeringId` identifica curso + modalidade + unidade + turno/agenda + entrada + versão quando aplicável. `caseId` identifica campanha + matrícula de origem; `studentId` vincula a pessoa sem confundir duas matrículas. Chaves externas só no adaptador, não como texto de interface.
+IDs imutáveis separados de nomes e códigos externos. `offeringId` identifica uma turma: curso + modalidade + turno (com unidade e entrada como atributos). O cadastro Ofertado Sim/Não é por turma. `caseId` identifica campanha + matrícula de origem; `studentId` vincula a pessoa sem confundir duas matrículas. Chaves externas só no adaptador, não como texto de interface.
 
 Dinheiro em centavos inteiros; porcentagens em pontos base ou número decimal com contrato explícito. Datas civis como `YYYY-MM-DD`; instantes ISO 8601 com offset/UTC, exibidos em São Paulo. Duração e mensalidade têm unidade explícita: semestres, módulos, meses e parcelas não são intercambiáveis.
 
@@ -11,9 +11,9 @@ Dinheiro em centavos inteiros; porcentagens em pontos base ou número decimal co
 | Entidade | Campos essenciais |
 |---|---|
 | Campaign | id, nome, entrada, dataInicio, dataDecisaoReferencia, fase, configVersion |
-| Course | id, nome, titulação, área, descrição, fonte, academicReviewAt |
-| Offering | id, courseId, modality, unitId, shift, schedule, intake, startDate, capacity, tuitionCents, installmentCount, decision |
-| Decision | offeringId, outcome, actorId, decidedAt, reason, reference, version, strategicBudgetCents |
+| CatalogCourse (real, `src/data/catalog.ts`) | name, slug, degree, isNew, formats[{modality, shifts[]}] |
+| Offering | id, courseName, modality (`presencial`, `presencial_integral`, `presencial_intensivo`, `semipresencial`, `ead`, `ead_live`), shift (`diurno`, `noturno`, `integral`, `agenda`, `online`), unitId, schedule, intake, startDate, capacity, occupiedSeats, role (`origin`, `destination`, `blocked`, `catalog`), tuitionCents, installmentCount, decision, degree, isNew, sourceKind |
+| Decision / DecisionRecord | outcome (`confirmed` = Ofertado, `not_formed` = Não ofertado), version, decidedAt, actorId; o histórico guarda offeringId. Sem motivo, ata ou verba |
 | EnrollmentSnapshot | offeringId, asOf, countValid, newCount, canceledCount, sourceBatchId |
 | Forecast | offeringId, asOf, horizonDate, method, base/low/high, evidenceStatus, parameters, modelVersion |
 | EconomicsScenario | offeringId, periodUnit, variableCostCents, avoidableFixedCostCents, contribution, assumptions |
@@ -27,10 +27,12 @@ Dinheiro em centavos inteiros; porcentagens em pontos base ou número decimal co
 | Approval | id, proposalVersion, policyVersion, impactCents, approver, decision, reason |
 | SeatReservation | offeringId, proposalId, count, expiresAt, state |
 | AcademicTask | caseId, proposalVersion, checklist, status, assigneeId, executionReference |
-| RefundRequest | caseId, paymentRefs, amountCents, idempotencyKey, status, financeOwnerId |
+| RefundRequest | caseId, paymentRefs, amountCents (estimado), status (único: `requested` = "Encaminhada ao financeiro"), trail |
 | AssignmentLease | caseId, actorId, version, acquiredAt, expiresAt, firstContactAt |
 | AuditEvent | id, commandId, entityType, entityId, actorId, action, beforeVersion, afterVersion, occurredAt |
 | FollowUp | caseId, stageD7D30, expectedAt, observation, observedAt, source |
+
+Desde 12/11/2026, `role: 'catalog'` marca as 133 turmas só de catálogo (60 vagas e mensalidade fictícias, sem alunos). Nomes, formatos, turnos e selo vêm do site público; o resto é sintético (`15-catalogo-real.md`). Políticas incluem `consultantDiscountBps` (500) e `leadershipDiscountBps` (2000). Esquema persistido na versão 4.
 
 Entidades de demonstração podem ser armazenadas em um único JSON normalizado. Não duplicar o mesmo preço em cinco lugares, exceto no snapshot intencional da proposta aceita, que precisa preservar a condição original.
 
@@ -52,9 +54,9 @@ Pacote inicial recomendado à TI: um dicionário com significado dos status, exp
 
 Definir finalidade, hipótese legal por atividade, necessidade, transparência, retenção e escopo com Encarregado/Jurídico. A base adequada para operação contratual, orientação e marketing pode diferir; não assumir consentimento universal nem legítimo interesse automático. O guia da ANPD recomenda examinar finalidade, necessidade e balanceamento/salvaguardas.
 
-Não enviar conversas reais a modelos externos sem arranjo institucional aprovado. Minimizar dados; separar dados financeiros; restringir acesso por tarefa; pseudonimizar análises; proteger exportações e trilhas; estabelecer correção/revisão de perfis e resultados. A política de retenção será configurada após definição institucional; não inventar prazo legal universal.
+Não enviar conversas reais a modelos externos sem arranjo institucional aprovado. Minimizar dados; manter dados financeiros no sistema de devoluções; restringir acesso por tarefa; pseudonimizar análises; proteger exportações e trilhas; estabelecer correção/revisão de perfis e resultados. A política de retenção será configurada após definição institucional; não inventar prazo legal universal.
 
-Fonte de CRM pode conter informação sensível incidental: excluir do resumo e de ordenação quando não necessária. Não usar atributos protegidos ou vulnerabilidade para preço, tratamento ou fila. A decisão de formação por oferta é da diretoria; o projeto não delega acesso à educação a um modelo.
+Fonte de CRM pode conter informação sensível incidental: excluir do resumo e de ordenação quando não necessária. Não usar atributos protegidos ou vulnerabilidade para preço, tratamento ou fila. O cadastro Ofertado por turma é da Diretoria/Gestão; o projeto não delega acesso à educação a um modelo.
 
 ## Fronteira do protótipo
 

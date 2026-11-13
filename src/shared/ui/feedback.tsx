@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { create } from 'zustand'
 import type { Result } from '@/domain/errors'
 import { cn } from '@/shared/lib/cn'
-import { fadeRise } from '@/shared/motion'
+import { Reveal, SPRING_LAYOUT, Swap, toastMotion } from '@/shared/motion'
 import { Button, type ButtonProps } from './button'
 import { Dialog } from './overlays'
 import { Callout, Textarea } from './primitives'
@@ -36,13 +36,13 @@ export function Toaster() {
   const { items, drop } = useToasts()
   return (
     <div role="status" aria-live="polite" className="pointer-events-none fixed right-4 bottom-4 z-[70] flex w-[min(92vw,380px)] flex-col gap-2 max-md:right-3 max-md:bottom-3">
-      <AnimatePresence initial={false}>
+      <AnimatePresence initial={false} mode="popLayout">
         {items.map((t) => (
-          <motion.div key={t.id} layout variants={fadeRise} initial="initial" animate="animate" exit="exit" className="pointer-events-auto flex items-start gap-2.5 rounded-pnl border border-line bg-raised px-3 py-2.5 text-[13px] shadow-popover">
+          <motion.div key={t.id} layout transition={{ layout: SPRING_LAYOUT }} variants={toastMotion} initial="initial" animate="animate" exit="exit" className="pointer-events-auto flex items-start gap-2.5 rounded-pnl border border-line bg-raised px-3 py-2.5 text-[13px] shadow-popover">
             {t.tone === 'danger' ? <CircleAlert className="mt-0.5 size-4 shrink-0 text-danger" aria-hidden /> : <Check className={cn('mt-0.5 size-4 shrink-0', t.tone === 'success' ? 'text-success' : 'text-muted')} aria-hidden />}
             <p className="min-w-0 flex-1">{t.text}</p>
             {t.action ? (
-              <button type="button" className="shrink-0 font-medium text-action hover:underline" onClick={() => { t.action!.run(); drop(t.id) }}>
+              <button type="button" className="shrink-0 font-medium text-link hover:underline" onClick={() => { t.action!.run(); drop(t.id) }}>
                 {t.action.label}
               </button>
             ) : null}
@@ -60,11 +60,13 @@ export function Toaster() {
 
 /** Mostra o motivo devolvido pelo domínio, perto da ação, preservando o que o usuário digitou. */
 export function CommandError({ result, className, action }: { result: Result<unknown> | null; className?: string; action?: ReactNode }) {
-  if (!result || result.ok) return null
+  const failed = result && !result.ok ? result : null
   return (
-    <Callout tone="danger" role="alert" className={className} action={action}>
-      {result.message}
-    </Callout>
+    <Reveal show={failed !== null} className={className}>
+      <Callout tone="danger" role="alert" action={action}>
+        {failed?.message}
+      </Callout>
+    </Reveal>
   )
 }
 
@@ -94,7 +96,7 @@ export function CopyButton({ text, label = 'Copiar', copiedLabel = 'Copiado', ..
           }
         }}
       >
-        {state === 'copied' ? <Check className="text-success" /> : <Copy />}
+        <Swap id={state === 'copied' ? 'copied' : 'copy'}>{state === 'copied' ? <Check className="text-success" /> : <Copy />}</Swap>
         <span aria-live="polite">{state === 'copied' ? copiedLabel : label}</span>
       </Button>
       <Dialog open={state === 'manual'} onOpenChange={(open) => !open && setState('idle')} title="Copie o texto manualmente" description="O navegador não permitiu acesso à área de transferência. O texto abaixo já está selecionado: use Ctrl+C." size="md">

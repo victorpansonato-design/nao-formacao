@@ -1,47 +1,85 @@
-/* Tokens propostos; importar na aplicação e mapear para as primitivas de UI. */
+/* Tokens da interface. Cores medidas da referência enviada pelo usuário em 13/11/2026
+   ("Controle de Atas", Grupo Anchieta): ver design/direcao-visual.md, revisão de 13/11/2026. */
 :root {
   color-scheme: light;
-  --brand: #0051a0;
-  --nav: #133a9e;
-  --canvas: #f4f7fb;
+  --brand: #133a9e;
+  /* Fundo da aplicação: a navegação é o próprio fundo e o conteúdo flutua sobre ele num painel arredondado. */
+  --nav: #f4f5f7;
+  --canvas: #f4f5f7;
   --surface: #ffffff;
   --surface-raised: #ffffff;
-  --text: #14263f;
-  --text-muted: #52647c;
-  --border: #dce5f0;
-  --action: #0051a0;
+  --surface-bar: #fbfbfc; /* barra superior dentro do painel */
+  --text: #0b0f18;
+  --text-muted: #5c616b;
+  --border: #e1e3e6;
+  --action: #133a9e;
+  --link: #133a9e;
   --action-text: #ffffff;
-  --success: #146c43;
-  --warning: #815200;
-  --danger: #b42332;
-  --focus: #0051a0;
-  --radius-control: 8px;
-  --radius-panel: 12px;
-  --radius-dialog: 16px;
-  --shadow-raised: 0 8px 28px rgb(20 38 63 / 9%);
-  --duration-fast: 120ms;
-  --duration-base: 200ms;
-  --duration-panel: 280ms;
+  /* Estados como texto pequeno: mesmo matiz da referência, um passo mais profundo para 4,5:1 sobre os fundos suaves. */
+  --success: #1f7a44;
+  --warning: #9a5a00;
+  --danger: #cc2a29;
+  /* Números de indicador: as cores exatas da referência (texto grande, 3:1 basta). */
+  --kpi-success: #26894c;
+  --kpi-danger: #db2c2b;
+  --kpi-brand: #133a9e;
+  --kpi-warning: #b86b00;
+  --accent: #f3bb13; /* linha amarela: assinatura, nunca estado nem texto */
+  --focus: #133a9e;
+  --emphasis-surface: #133a9e;
+  --emphasis-text: #ffffff;
+  --emphasis-muted: #c9d4f3;
+  --radius-control: 10px;
+  --radius-panel: 16px;
+  --radius-dialog: 20px;
+  --radius-shell: 16px; /* painel do aplicativo sobre a navegação */
+  --shadow-raised: 0 1px 2px rgb(11 15 24 / 3%);
+  --shadow-shell: 0 0 0 1px rgb(11 15 24 / 4%), 0 1px 3px rgb(11 15 24 / 4%);
+  --sidebar-width: 248px;
+  --sidebar-rail: 64px;
+  /* Movimento: regras de uso em design/motion.md. Não criar duração ou curva fora desta escala. */
+  --duration-fast: 120ms; /* hover, foco, press, saída de popover */
+  --duration-base: 200ms; /* entrada de popover/diálogo, troca de conteúdo, rota, recolher a navegação */
+  --duration-panel: 280ms; /* expansão de altura, saída de gaveta */
+  --duration-drawer: 360ms; /* entrada de gaveta lateral */
+  --duration-data: 500ms; /* barras e medidores */
   --duration-theme: 450ms;
-  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --duration-data-intro: 900ms; /* entrada de painel de dados: contagem de números e varredura do gráfico de rosca */
+  --stagger-step: 40ms; /* intervalo entre itens de lista curta na entrada de painel (motion-stagger) */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1); /* entra, sai e responde a ação */
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1); /* desloca algo que já está na tela */
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1); /* gavetas */
   --font-ui: 'Inter Variable', Inter, system-ui, sans-serif;
 }
 [data-theme='dark'] {
   color-scheme: dark;
-  --nav: #102f70;
-  --canvas: #0c1626;
-  --surface: #132137;
-  --surface-raised: #192b45;
-  --text: #edf3fc;
-  --text-muted: #a9b9d0;
-  --border: #2c405b;
-  --action: #80b8ff;
-  --action-text: #0c1626;
-  --success: #71d6a1;
-  --warning: #f2cb71;
-  --danger: #ff9ca6;
-  --focus: #80b8ff;
+  --brand: #8aa6f0;
+  --nav: #090a0f;
+  --canvas: #090a0f;
+  --surface: #0e1216;
+  --surface-raised: #151a20;
+  --surface-bar: #0b0f13;
+  --text: #eef0f5;
+  --text-muted: #a1a6b0;
+  --border: #1f242a;
+  --action: #8aa6f0;
+  --link: #a3b8f5;
+  --action-text: #0b1430;
+  --success: #4cc27a;
+  --warning: #f3bb13;
+  --danger: #f26461;
+  --kpi-success: #4cc27a;
+  --kpi-danger: #f26461;
+  --kpi-brand: #8aa6f0;
+  --kpi-warning: #f3bb13;
+  --accent: #f3bb13;
+  --focus: #8aa6f0;
+  --emphasis-surface: #172a5e;
+  --emphasis-text: #eef0f5;
+  --emphasis-muted: #b7c6ef;
+  --shadow-raised: none;
+  --shadow-shell: 0 0 0 1px rgb(255 255 255 / 5%);
 }
 @media (prefers-reduced-motion: reduce) {
-  :root { --duration-fast: 0ms; --duration-base: 0ms; --duration-panel: 0ms; --duration-theme: 0ms; }
+  :root { --duration-fast: 0ms; --duration-base: 0ms; --duration-panel: 0ms; --duration-drawer: 0ms; --duration-data: 0ms; --duration-theme: 0ms; --duration-data-intro: 0ms; --stagger-step: 0ms; }
 }

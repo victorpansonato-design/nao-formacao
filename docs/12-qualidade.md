@@ -4,42 +4,43 @@
 
 | ID | Cenário | Resultado esperado |
 |---|---|---|
-| T01 | Oferta com risco baixo, decisão pendente | Não pode ser destino |
-| T02 | Oferta estratégica confirmada, vaga válida | Pode ser destino com justificativa preservada |
+| T01 | Turma marcada Não ofertado | Não pode ser destino; risco não altera o cadastro |
+| T02 | Marcar Não ofertado com matriculados | Prévia mostra o número; após salvar, os alunos entram na fila sem responsável; voltar a Ofertado os retira (`origin_confirmed`) |
 | T03 | Interesse CRM fora da área original | Aparece como evidência, sujeito à confirmação atual |
 | T04 | Restrição de horário incompatível | Bloqueia proposta mesmo com afinidade alta |
 | T05 | Zero vagas ou proposta expirada | Aceite bloqueado; nenhuma tarefa criada |
 | T06 | Duas tentativas com mesmo commandId | Um único evento e efeito |
 | T07 | Comando com versão antiga | Conflito sem sobrescrita |
-| T08 | Aceite válido | Cria ajuste; KPI de efetivados permanece inalterado |
-| T09 | Ajuste concluído e conferido | KPI de efetivados cresce exatamente um |
+| T08 | Aceite válido | Cria ajuste; virados permanecem inalterados até a troca ser confirmada |
+| T09 | Troca confirmada (`confirmTransfer` ou checklist do Suporte) | Virados crescem exatamente um; bloqueado se o ajuste estiver devolvido |
 | T10 | Pedido direto de reembolso | Abre fluxo sem negociação obrigatória |
-| T11 | Restituição acima do saldo ou duplicada | Bloqueio e vínculo ao registro existente |
+| T11 | Pedido de devolução duplicado | Bloqueio e vínculo ao registro existente |
 | T12 | Sem pagamento | Regularização sem solicitação monetária |
 | T13 | Proposta sem aprovação necessária | Aceite bloqueado |
 | T14 | Desconto por três parcelas | Custo e preço após benefício calculados corretamente |
 | T15 | Importar lote duas vezes | Não duplica aluno/caso |
-| T16 | Destino suspenso após proposta | Congela proposta e exige revisão |
+| T16 | Destino marcado Não ofertado após proposta | Congela proposta e exige revisão |
 | T17 | Expiração de posse antes do contato | Retorna caso à fila conforme política |
 | T18 | Troca de papel e acesso por URL | Rota e comando restritos na simulação |
 | T19 | Campanha com pendências | Encerramento impedido ou exceção assumida explicitamente |
 | T20 | Filtro/paginação/exportação | Contagem e exportado correspondem ao mesmo recorte |
 | T21 | Simular disparo com opt-out | Nenhuma mensagem promocional registrada para esse aluno |
-| T22 | Cenário anterior à decisão | Afetados oficiais = 0 |
+| T22 | Cenário Antecipação | Afetados = 0; painel em estado vazio |
+| T25 | Painel | Fatias somam os afetados; contatados + a contatar = afetados; cada número abre a lista que o compõe |
 | T23 | Snapshot ausente/custo zero indevido | Estado de dados insuficientes, sem precisão inventada |
 | T24 | Reset e relógio fixo | Mesma base e mesmos cálculos reproduzidos |
 
 ## Três percursos ponta a ponta
 
-**Continuidade:** gestão abre radar → diretoria registra não formação de origem → consultor retira próximo caso → verifica evidência CRM → compara destino confirmado → solicita exceção → gestor aprova → consultor registra aceite → Suporte confere e efetiva → painel mostra marcos distintos → D+7/D+30 aguardam observação.
+**Continuidade:** Diretoria/Gestão marca a turma de origem como Não ofertado no painel → consultor retira próximo caso → verifica evidência CRM → compara destino ofertado → solicita exceção de desconto → Diretoria/Gestão aprova → consultor registra aceite → troca confirmada no Lyceum (consultor ou Suporte) → painel mostra o aluno como virado → D+7/D+30 aguardam observação.
 
-**Devolução:** consultor registra preferência de saída → solicita regularização e devolução → Suporte conclui ficha → Financeiro confere saldo → simula pagamento → baixa comprovante demonstrativo → trilha e painel conciliam. Clique duplo não duplica solicitação/pagamento.
+**Devolução:** consultor registra o pedido de saída → pedido fica "Encaminhada ao financeiro" e a regularização vai ao Suporte → Suporte conclui → caso encerra → painel conta em "Pediu devolução". Clique duplo não duplica o pedido.
 
 **Exceção:** destino fica sem vaga enquanto proposta está aberta → aceite é bloqueado → consultor recebe motivo → revê opções → aluno pode escolher saída. Não fazer a interface sorrir e concluir algo que o domínio rejeitou.
 
 ## Verificação visual e acessibilidade
 
-Conferir telas principais em 1440×900, 1280×800, 768×1024 e 390×844; tema claro/escuro; zoom 200%; nome longo; valores grandes; tabela vazia; erro de persistência; modal aberto e navegação por teclado. Capturar imagens reais da implementação e comparar com a direção aprovada, sem substituir por mockup gerado.
+Conferir telas principais em 1440×900, 1280×800, 768×1024 e 390×844 (o painel também em 1280×720, 1366×768 e 1920×1080, sem rolagem no desktop); tema claro/escuro; zoom 200%; nome longo; valores grandes; tabela vazia; erro de persistência; modal aberto e navegação por teclado. Capturar imagens reais da implementação e comparar com a direção aprovada, sem substituir por mockup gerado.
 
 Critérios: contraste de texto normal pelo menos 4,5:1 e de texto grande 3:1; ícones/estados identificáveis sem cor; foco visível e não oculto; campos com rótulo; alvos confortáveis; nenhuma informação só no hover; diálogos com título, foco inicial e devolução ao fechar; gráficos com tabela/resumo; avisos relevantes em região viva sem leitura duplicada. Meta WCAG 2.2 AA; respeitar preferência por redução de movimento também.
 

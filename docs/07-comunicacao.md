@@ -31,7 +31,7 @@ As datas de decisão são configuráveis; as aulas de cada destino podem diferir
 
 **Comparar sem induzir equivalência:** “Cada formação prepara para atividades diferentes. Posso te mostrar a grade, a duração e a rotina de [opções validadas], para você avaliar com tranquilidade.”
 
-Se questionado sobre formação de turma antes da decisão, consultar o status real e informar: “A oferta ainda está em definição. A previsão interna não é uma confirmação. Vamos te atualizar assim que a instituição registrar a decisão.” Não afirmar garantia inexistente.
+Se questionado sobre formação de turma, consultar o cadastro real. Enquanto a turma estiver ofertada, informar: “Sua turma segue ofertada. A previsão interna não é uma confirmação nem um cancelamento; se houver mudança, vamos te avisar.” Não afirmar garantia inexistente.
 
 ## Motor de réguas do MVP
 
@@ -41,6 +41,6 @@ Cadência inicial demonstrativa: até um conteúdo facultativo por semana, se ac
 
 ## Critérios de parada
 
-Origem confirmou; aluno recusou conteúdo; mudou preferência; pediu saída; já aceitou proposta; contato foi corrigido; caso duplicado; destino suspenso; existe contato ativo por outro consultor. A prévia deve mostrar por que cada aluno foi incluído ou excluído.
+Origem confirmou; aluno recusou conteúdo; mudou preferência; pediu saída; já aceitou proposta; contato foi corrigido; caso duplicado; destino marcado Não ofertado; existe contato ativo por outro consultor. A prévia deve mostrar por que cada aluno foi incluído ou excluído.
 
 Não usar taxa de abertura como sucesso principal. Observar respostas úteis, preferências confirmadas, queixas, descadastros e tempo até solução. Experimentos de antecipação não podem atrasar a comunicação oficial nem tornar a devolução menos acessível.

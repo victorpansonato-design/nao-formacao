@@ -4,7 +4,7 @@
 
 O problema começa antes da comunicação do cancelamento e termina depois do aceite comercial. Hoje a decisão tardia comprime o tempo de uma equipe pequena, o histórico se perde na passagem entre setores e a instituição não acompanha com precisão o destino de quem já se matriculou.
 
-O Continua propõe transformar esse intervalo em uma operação antecipada e mensurável: a diretoria enxerga risco e economia por oferta; o consultor recebe contexto e opções adequadas; o Suporte executa exatamente o combinado; o Financeiro acompanha a restituição quando escolhida. CX mede a experiência e corrige causas para a próxima entrada.
+O Continua propõe transformar esse intervalo em uma operação antecipada e mensurável: a Diretoria/Gestão enxerga risco e economia por turma, marca cada uma como ofertada ou não e acompanha a equipe no painel; o consultor recebe contexto e opções adequadas; o Suporte executa exatamente o combinado; o pedido de restituição, quando escolhido, é registrado e encaminhado ao financeiro, que atua em outro sistema. A experiência é medida para corrigir causas na próxima entrada. (Perfis revistos em 12/11/2026; ver `00-decisoes.md`.)
 
 **Tese central:** aumentar a continuidade acadêmica com escolha informada e reduzir perdas operacionais, preservando margem e confiança.
 
@@ -33,7 +33,7 @@ Presencial diurno/noturno e semipresencial são origens do processo. Estrutura p
 
 ## O que merece destaque na demonstração
 
-- **Radar por oferta:** trajetória observada, faixa projetada, equilíbrio econômico e decisão humana no mesmo lugar, com rótulos distintos.
+- **Radar por oferta:** trajetória observada, faixa projetada e equilíbrio econômico como apoio, separados do cadastro Ofertado Sim/Não, que é humano.
 - **Interesse com evidência:** a IA encontra que uma aluna de Administração também cogitava Biomedicina; o consultor verifica a preferência atual antes de comparar.
 - **Continuidade sem segunda frustração:** uma opção aparentemente boa fica indisponível porque sua turma não está formalmente confirmada.
 - **Acordo que chega inteiro ao Suporte:** preço, prazo, curso, turno e aceite viajam juntos; o consultor vê quando a execução termina.

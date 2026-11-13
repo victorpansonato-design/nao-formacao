@@ -16,6 +16,7 @@ Consulta em 10/11/2026. **Produto real** significa que o padrão existe num prod
 | V08 | [Pinterest: CRM Dashboard Concept](https://www.pinterest.com/pin/581105158207483481/) | Pin com autoria indicada a Creativilo; inspeção limitada por login | Separação de áreas, branco e ritmo visual | Moodboard de gestão |
 | V09 | [CRM Dashboard, Behance](https://www.behance.net/gallery/180906513/CRM-Dashboard) | Conceito; imagem local inspecionada | Unidade de azul e hierarquia dos dados | Vocabulário visual |
 | V10 | [Inbox Design Study, Murilo F. Souza](https://dribbble.com/shots/26030316-Inbox-Design-Study-for-an-Omnichannel-Platform) | Autor identifica estudo fictício | Estados light/dark e controles de inbox | Atendimento |
+| V12 | Controle de Atas — Grupo Anchieta (sistema interno) | Produto real da própria instituição; vídeo e print enviados pelo usuário em 13/11/2026 | Navegação como fundo, painel sobreposto arredondado, hover em pílula clara, trilho recolhido, cores dos números, linha amarela | **Identidade vigente** de todo o shell e das primitivas (`DESIGN.md`) |
 | V11 | [CRM examples, SaaSUI](https://www.saasui.design/crm-dashboard-ui-design) | Curadoria secundária de telas | Descoberta complementar de padrões | Pesquisa posterior |
 
 Não copiar do conceito Behance o excesso de cores, o donut sobreposto ou a composição de marketing. Não copiar do pin verde sua cor de marca. A paleta e o conteúdo do Continua são próprios do Anchieta.
@@ -27,6 +28,7 @@ Não copiar do conceito Behance o excesso de cores, o donut sobreposto ou a comp
 | `intercom-inbox.png` | [Asset da página oficial](https://cdn.sanity.io/images/4bgok82s/monorepo-static-assets/b1b18a305bbce7f039c68bbdb044841365045a98-2436x1624.webp) | Imagem de divulgação do Inbox; extensão ajustada à codificação recebida |
 | `linear-dashboard.png` | [Asset da documentação oficial](https://webassets.linear.app/images/ornj730p/production/71f0619607a00ecd4486a66340fa0ec12f38fd97-2016x1036.png?auto=format&dpr=2&q=95&w=1440) | Mostra lista de dashboards; transporte AVIF convertido para PNG, sem mudança de conteúdo |
 | `crm-blue-behance.png` | [Asset do projeto](https://mir-s3-cdn-cf.behance.net/project_modules/1400/209282180906513.6512d71dd8966.png) | Conceito visual, não produto comprovado |
+| `Controle de Atas — Grupo Anchieta - Brave 2026-11-13 10-14-26.mp4` | Gravação de tela enviada pelo usuário (1920×1032, 60 fps, 16,5 s) | Hover, troca de tela, recolher a navegação e troca de tema; cores do escuro medidas aqui |
 
 ## Pinterest: o que foi possível validar
 

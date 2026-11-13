@@ -2,6 +2,7 @@ import { fail } from '../errors'
 import { audit, caseOf, isCampaignOpen, nextId, notify, requireRole, studentOf, touchCase, userOf, type Ctx } from '../helpers'
 import { generalQueue, nextCaseFor } from '../queue'
 import { MINUTE, addMs, ms } from '../time'
+import type { ReplyFacts } from '../assistant'
 import type { Channel, DomainState, EvidenceStatus, Id, InteractionKind, IsoInstant, StudentPreferences } from '../types'
 import { activeProposal, requireCaseActor } from './shared'
 
@@ -95,6 +96,42 @@ const INTERACTION_SUMMARY: Record<Exclude<InteractionKind, 'system'>, string> = 
   call_answered: 'Ligação atendida registrada',
   call_no_answer: 'Tentativa de ligação sem resposta',
   note: 'Nota interna registrada',
+}
+
+/**
+ * Resposta do aluno lida pelo assistente: registra a mensagem e, no mesmo comando,
+ * o que ela confirma (interesse, turnos, orçamento, preferência), com a mensagem como fonte.
+ */
+export function recordStudentReply(s: DomainState, p: { caseId: Id; text: string; facts?: ReplyFacts }, ctx: Ctx) {
+  const { interactionId } = recordInteraction(s, { caseId: p.caseId, kind: 'student_reply_sim', text: p.text }, ctx)
+  const f = p.facts ?? {}
+  const applied: string[] = []
+  for (const evidenceId of f.confirmEvidenceIds ?? []) {
+    confirmEvidence(s, { caseId: p.caseId, evidenceId, status: 'confirmed' }, ctx)
+    applied.push('interesse confirmado')
+  }
+  for (const evidenceId of f.rejectEvidenceIds ?? []) {
+    confirmEvidence(s, { caseId: p.caseId, evidenceId, status: 'rejected' }, ctx)
+    applied.push('interesse descartado')
+  }
+  if (f.newInterestCourse) {
+    registerInterest(s, { caseId: p.caseId, courseName: f.newInterestCourse, excerpt: p.text }, ctx)
+    applied.push(`interesse em ${f.newInterestCourse}`)
+  }
+  const patch: Parameters<typeof updatePreference>[1]['patch'] = {}
+  if (f.acceptedShifts) patch.acceptedShifts = f.acceptedShifts
+  if (f.acceptedModalities) patch.acceptedModalities = f.acceptedModalities
+  if (f.budgetCents) patch.budgetCents = f.budgetCents
+  if (f.promoOptOut) patch.promoOptOut = true
+  if (Object.keys(patch).length) {
+    // Turno confirmado sem modalidade explícita mantém as modalidades atuais, agora confirmadas.
+    if (patch.acceptedShifts && !patch.acceptedModalities) patch.acceptedModalities = studentOf(s, caseOf(s, p.caseId).studentId).preferences.acceptedModalities
+    updatePreference(s, { caseId: p.caseId, patch, source: `Mensagem do aluno (${interactionId})` }, ctx)
+    if (patch.acceptedShifts) applied.push('rotina')
+    if (patch.budgetCents) applied.push('orçamento')
+    if (patch.promoOptOut) applied.push('sem conteúdo promocional')
+  }
+  return { interactionId, applied }
 }
 
 export function confirmEvidence(s: DomainState, p: { caseId: Id; evidenceId: Id; status: EvidenceStatus }, ctx: Ctx) {

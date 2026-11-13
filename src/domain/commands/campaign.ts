@@ -5,16 +5,16 @@ import { ms } from '../time'
 import type { DomainState, Id, IsoDate, IsoInstant, Policies } from '../types'
 
 export function closeCampaign(s: DomainState, p: { assumedExceptions?: string }, ctx: Ctx) {
-  requireRole(s, ctx, ['manager', 'director'], 'encerrar a campanha')
+  requireRole(s, ctx, ['manager'], 'encerrar a campanha')
   if (s.campaign.phase === 'closed') fail('duplicate', 'A campanha já está encerrada.')
-  if (s.campaign.phase === 'anticipation') fail('wrong_state', 'Ainda não há decisão oficial nesta campanha: não há o que encerrar.')
+  if (s.campaign.phase === 'anticipation') fail('wrong_state', 'Nenhuma turma foi cadastrada como não ofertada nesta campanha: não há o que encerrar.')
   const check = closureCheck(s)
   if (!check.canClose) {
     fail('pending_items', `Ainda há ${check.commercialOpen.length} caso(s) em atendimento comercial. Conclua ou transfira antes de encerrar.`, check)
   }
   const note = p.assumedExceptions?.trim()
   if (check.needsAssumedExceptions && !note) {
-    fail('pending_items', 'Há pendências acadêmicas, financeiras ou de contato. Para encerrar, assuma-as formalmente com responsável e justificativa.', check)
+    fail('pending_items', 'Há pendências acadêmicas ou de contato. Para encerrar, assuma-as formalmente com responsável e justificativa.', check)
   }
   const version = (s.campaign.closure?.version ?? 0) + 1
   s.campaign.closure = { closedAt: ctx.now, actorId: ctx.actorId, assumedExceptions: note || null, snapshot: kpiSnapshot(s), version }
@@ -25,7 +25,7 @@ export function closeCampaign(s: DomainState, p: { assumedExceptions?: string },
 }
 
 export function reopenCampaign(s: DomainState, p: { reason: string }, ctx: Ctx) {
-  requireRole(s, ctx, ['manager', 'director'], 'reabrir a campanha')
+  requireRole(s, ctx, ['manager'], 'reabrir a campanha')
   if (s.campaign.phase !== 'closed') fail('wrong_state', 'A campanha não está encerrada.')
   if (!p.reason.trim()) fail('invalid', 'Justifique a reabertura.')
   s.campaign.phase = 'operation'
@@ -36,7 +36,7 @@ export function reopenCampaign(s: DomainState, p: { reason: string }, ctx: Ctx) 
 
 /** Nova campanha: catálogo e políticas revisados; nunca copia alunos, contatos ou casos. */
 export function createCampaign(s: DomainState, p: { name: string; intake: string; classesStartDate: IsoDate; decisionReferenceDate: IsoDate }, ctx: Ctx) {
-  requireRole(s, ctx, ['manager', 'admin', 'director'], 'criar campanhas')
+  requireRole(s, ctx, ['manager', 'admin'], 'criar campanhas')
   if (s.campaign.phase !== 'closed') fail('wrong_state', 'Encerre a campanha atual antes de abrir a próxima.')
   if (!p.name.trim()) fail('invalid', 'Dê um nome à campanha.')
   if (!/^\d{4}\/[12]$/.test(p.intake)) fail('invalid', 'Entrada no formato AAAA/1 ou AAAA/2.')
@@ -51,7 +51,7 @@ export function createCampaign(s: DomainState, p: { name: string; intake: string
     o.intake = p.intake
     o.startDate = p.classesStartDate
     o.occupiedSeats = 0
-    o.decision = { outcome: 'pending', version: 1 }
+    o.decision = { outcome: 'confirmed', version: 1 }
   }
   s.students = []
   s.enrollments = []
@@ -69,24 +69,23 @@ export function createCampaign(s: DomainState, p: { name: string; intake: string
   s.followUps = []
   s.dispatchLog = []
   s.forecastParams = {}
-  s.decisionDrafts = {}
   s.notifications = []
-  audit(s, ctx, { entityType: 'campaign', entityId: s.campaign.id, action: 'campaign.created', summary: `Nova campanha ${p.intake}: catálogo e políticas mantidos, decisões zeradas, nenhum aluno copiado` })
+  audit(s, ctx, { entityType: 'campaign', entityId: s.campaign.id, action: 'campaign.created', summary: `Nova campanha ${p.intake}: catálogo e políticas mantidos, todas as turmas voltam a Ofertado, nenhum aluno copiado` })
   return { campaignId: s.campaign.id }
 }
 
 export function updatePolicies(
   s: DomainState,
-  p: { patch: Partial<Pick<Policies, 'leaseMinutes' | 'proposalValidityHours' | 'consultantDiscountBps' | 'managerDiscountBps' | 'directorDiscountBps' | 'discountInstallments' | 'maxContactAttempts'>> },
+  p: { patch: Partial<Pick<Policies, 'leaseMinutes' | 'proposalValidityHours' | 'consultantDiscountBps' | 'leadershipDiscountBps' | 'discountInstallments' | 'maxContactAttempts'>> },
   ctx: Ctx,
 ) {
-  requireRole(s, ctx, ['director', 'admin', 'finance'], 'alterar políticas')
+  requireRole(s, ctx, ['manager', 'admin'], 'alterar políticas')
   const next = { ...s.policies, ...p.patch }
-  const ints: (keyof typeof p.patch)[] = ['leaseMinutes', 'proposalValidityHours', 'consultantDiscountBps', 'managerDiscountBps', 'directorDiscountBps', 'discountInstallments', 'maxContactAttempts']
+  const ints: (keyof typeof p.patch)[] = ['leaseMinutes', 'proposalValidityHours', 'consultantDiscountBps', 'leadershipDiscountBps', 'discountInstallments', 'maxContactAttempts']
   for (const key of ints) if (!Number.isInteger(next[key]) || next[key] < 0) fail('invalid', 'Os parâmetros precisam ser números inteiros não negativos.')
   if (next.leaseMinutes < 1 || next.proposalValidityHours < 1 || next.discountInstallments < 1 || next.maxContactAttempts < 1) fail('invalid', 'Prazos e quantidades precisam ser de pelo menos 1.')
-  if (!(next.consultantDiscountBps <= next.managerDiscountBps && next.managerDiscountBps <= next.directorDiscountBps)) fail('invalid', 'As alçadas precisam crescer: consultor ≤ gestão ≤ diretoria.')
-  if (next.directorDiscountBps > 5000) fail('invalid', 'O teto da demonstração é 50%.')
+  if (next.consultantDiscountBps > next.leadershipDiscountBps) fail('invalid', 'A alçada da Diretoria/Gestão não pode ser menor que a do consultor.')
+  if (next.leadershipDiscountBps > 5000) fail('invalid', 'O teto da demonstração é 50%.')
   s.policies = { ...next, version: s.policies.version + 1 }
   audit(s, ctx, { entityType: 'system', entityId: 'policies', action: 'policy.updated', summary: `Política de demonstração atualizada para a versão ${s.policies.version}` })
   return { version: s.policies.version }
@@ -156,18 +155,6 @@ export function importStudents(s: DomainState, p: { fileName: string; checksum: 
   s.importBatches.push({ id: batchId, fileName: p.fileName, checksum: p.checksum, at: ctx.now, actorId: ctx.actorId, received: p.rows.length, accepted, updated, rejected: 0 })
   audit(s, ctx, { entityType: 'import', entityId: batchId, action: 'import.confirmed', summary: `Lote ${p.fileName}: ${accepted} nova(s) matrícula(s), ${updated} atualizada(s)` })
   return { batchId, accepted, updated, duplicateBatch: false }
-}
-
-export function answerRefund(s: DomainState, p: { refundId: Id; note: string }, ctx: Ctx) {
-  const user = userOf(s, ctx.actorId)
-  if (user.role !== 'consultant' && user.role !== 'manager') fail('forbidden', 'Seu perfil não responde pendências de devolução.')
-  const r = s.refunds.find((x) => x.id === p.refundId) ?? fail('not_found', 'Solicitação não encontrada.')
-  if (r.status !== 'pending_info') fail('wrong_state', 'Não há pendência aberta nesta solicitação.')
-  if (!p.note.trim()) fail('invalid', 'Descreva a resposta à pendência.')
-  r.status = 'verification'
-  r.trail.push({ at: ctx.now, actorId: ctx.actorId, status: 'verification', note: `Pendência respondida: ${p.note.trim()}` })
-  audit(s, ctx, { entityType: 'refund', entityId: r.id, caseId: r.caseId, action: 'refund.answered', summary: 'Pendência respondida pela Captação' })
-  return { refundId: r.id }
 }
 
 export function markNotificationsRead(s: DomainState, _p: Record<string, never>, ctx: Ctx) {

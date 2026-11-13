@@ -9,15 +9,12 @@ import type { CrmEvidence, DomainState, Id, Offering, RetentionCase, Student } f
  */
 
 export type BlockerCode =
-  | 'not_confirmed'
-  | 'suspended'
   | 'not_formed'
   | 'no_seats'
   | 'schedule_incompatible'
   | 'modality_incompatible'
   | 'entry_incompatible'
   | 'same_as_origin'
-  | 'confirmation_expired'
 
 export type ConfirmationCode = 'interest' | 'routine' | 'budget' | 'no_interest_record'
 
@@ -49,7 +46,7 @@ export interface Recommendation {
   group: 'same_course' | 'declared_interest' | 'other'
 }
 
-const SHIFT_LABEL = { diurno: 'diurno', noturno: 'noturno', agenda: 'com encontros agendados' } as const
+const SHIFT_LABEL = { diurno: 'diurno', noturno: 'noturno', integral: 'integral', agenda: 'com encontros agendados', online: 'online' } as const
 
 export function seatsFree(s: DomainState, offeringId: Id, ignoreProposalId?: Id): number {
   const o = s.offerings.find((x) => x.id === offeringId)
@@ -62,23 +59,11 @@ export function seatsFree(s: DomainState, offeringId: Id, ignoreProposalId?: Id)
 }
 
 export function isConfirmed(o: Offering): boolean {
-  return o.decision.outcome === 'confirmed' || o.decision.outcome === 'strategic_confirmed'
+  return o.decision.outcome === 'confirmed'
 }
 
-function decisionBlocker(o: Offering, campaignStart: string): Blocker | null {
-  switch (o.decision.outcome) {
-    case 'pending':
-      return { code: 'not_confirmed', text: 'Turma ainda não confirmada pela diretoria' }
-    case 'suspended':
-      return { code: 'suspended', text: 'Oferta suspensa: novas propostas estão congeladas' }
-    case 'not_formed':
-      return { code: 'not_formed', text: 'Turma não será ofertada nesta entrada' }
-    default:
-      if (o.decision.validUntil && o.decision.validUntil < campaignStart) {
-        return { code: 'confirmation_expired', text: 'A confirmação registrada não cobre o início das aulas' }
-      }
-      return null
-  }
+function decisionBlocker(o: Offering): Blocker | null {
+  return o.decision.outcome === 'not_formed' ? { code: 'not_formed', text: 'Turma não ofertada nesta entrada' } : null
 }
 
 export function evaluateDestination(
@@ -98,14 +83,10 @@ export function evaluateDestination(
   const evidenceIds: Id[] = []
 
   if (o.id === origin.id) blockers.push({ code: 'same_as_origin', text: 'É a própria oferta de origem' })
-  const decision = decisionBlocker(o, s.campaign.classesStartDate)
+  const decision = decisionBlocker(o)
   if (decision) blockers.push(decision)
   else {
-    reasons.push(
-      o.decision.outcome === 'strategic_confirmed'
-        ? `Turma confirmada por investimento estratégico (${o.decision.reference ?? 'registro da diretoria'})`
-        : `Turma confirmada formalmente (${o.decision.reference ?? 'registro da diretoria'})`,
-    )
+    reasons.push('Turma cadastrada como ofertada nesta entrada')
   }
   if (o.intake !== origin.intake) blockers.push({ code: 'entry_incompatible', text: 'Entrada diferente da matrícula de origem' })
 
@@ -229,9 +210,11 @@ export function recommendFor(s: DomainState, caseId: Id): RecommendationSet {
   const origin = enrollment && s.offerings.find((x) => x.id === enrollment.offeringId)
   if (!c || !student || !origin) return { options: [], blocked: [] }
   const evidence = s.evidence.filter((e) => e.studentId === student.id)
+  // Itens só de catálogo (sem matrículas sintéticas) entram como alternativa apenas por mesmo curso ou interesse declarado.
   const all = s.offerings
     .filter((o) => o.id !== origin.id && o.intake === origin.intake)
     .map((o) => evaluateDestination(s, c, student, origin, o, evidence))
+    .filter((r) => r.offering.role !== 'catalog' || r.group !== 'other')
   const options = all.filter((r) => r.eligible).sort((a, b) => b.rank - a.rank || a.destinationId.localeCompare(b.destinationId))
   // Bloqueadas só interessam quando a pessoa teria motivo para esperar por elas:
   // mesmo curso, interesse declarado ou destino confirmado que não serve a ela.
